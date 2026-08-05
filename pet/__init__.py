@@ -1,1 +1,1 @@
-"""github-pet: pixel-cat state machine -> animated SVG."""
+"""github-pet: a pixel cat that reacts to real GitHub activity."""

@@ -1,40 +1,49 @@
 # github-pet
 
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet-light.svg">
-  <img alt="my github pet" src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg" width="100%">
-</picture>
+A pixel cat that lives on my GitHub profile and reacts to my **real GitHub
+activity**. No third-party widgets, no JavaScript, no hosting - a
+deterministic state machine rendered to animated SVG by a GitHub Action.
 
-A pixel cat that lives on my GitHub profile and reacts to my public activity.
+## How it works
 
-- **Zero dependencies** — Python standard library only
-- **Deterministic state machine** over the GitHub Events API
-- **Hand-crafted pixel sprites** rendered to **animated SVG (SMIL)**
-- Regenerated every 6 hours by a GitHub Action (`.github/workflows/pet.yml`)
+1. `pet/github_api.py` fetches public events (REST, stdlib `urllib`).
+   `pet/graph_api.py` fetches the real contribution calendar and recent
+   repo/PR activity (GraphQL). Zero dependencies.
+2. `pet/state.py` reduces that to one state, first match wins:
 
-## States
+| State | Rule | Visual |
+|---|---|---|
+| zoomies | PR merged <=24h, or >=3 pushes today | kitty sprints, motion lines |
+| sleeping | 00:00-06:00 IST, nothing pushed <=6h | curled up, floating Zzz |
+| content | pushed <=24h | patrols + purring hearts |
+| hungry | no pushes for 48-96h | sits by an empty bowl |
+| grumpy | no pushes for >96h | back turned, judging me |
 
-| State | Trigger (from public events) |
-|---|---|
-| zoomies | PR merged in last 24h, or 3+ pushes today |
-| sleeping | 00:00–06:00 IST and no push in 6h |
-| content | at least one push in the last 24h |
-| hungry | no pushes for 48–96h |
-| grumpy | no pushes for 96h+ |
+3. Rendering (`pet/graph_render.py`, `pet/render.py`, `pet/charts.py`) draws
+   hand-crafted pixel grids (`pet/sprites.py`) as animated SVG. SMIL only -
+   GitHub strips JavaScript and CSS from README images.
+4. `.github/workflows/pet.yml` regenerates `dist/*.svg` every 6h
+   (`permissions: contents: write`) and commits only on change.
 
-## Embed it yourself
+## Outputs
 
-```html
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet-light.svg">
-  <img alt="my github pet" src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg">
-</picture>
-```
+- `dist/graph.svg` / `graph-light.svg` - mochi kitty hopping along my real
+  contribution graph (hero visual, dark/light)
+- `dist/pet.svg` / `pet-light.svg` - side-view walking-cat banner
+- `dist/langs.svg` / `langs-light.svg` - language chart from real repo bytes
 
-## Run locally
+## Run it yourself
 
 ```bash
-python generate.py   # writes dist/pet.svg and dist/pet-light.svg
+git clone https://github.com/prsdx/github-pet
+cd github-pet
+python generate.py          # python 3.10+, nothing to install
 ```
 
-Built by hand — no widgets, no templates.
+`PET_USER=your-username` targets your profile. `GITHUB_TOKEN` (optional)
+enables the contribution calendar, activity feed and higher rate limits.
+
+---
+
+Built by hand - pixel grids, state machine and all. If the cat is grumpy,
+that says something about my commit habits.

@@ -1,35 +1,42 @@
-"""Entrypoint: fetch activity -> compute state -> render all SVG variants."""
+"""github-pet generator: builds dist/*.svg from live GitHub data."""
+from __future__ import annotations
+
 import os
+import pathlib
 
-from pet.github_api import fetch_events
-from pet.graph_api import fetch_calendar
-from pet.graph_render import build_graph_svg
-from pet.render import build_svg
-from pet.state import compute_state
+from pet.github_api import fetch_events, fetch_repos, fetch_languages
+from pet.state import decide
+from pet import render, charts, graph_api, graph_render
+
+USER = os.environ.get("PET_USER", "prsdx")
 
 
-def main():
-    events = fetch_events()
-    state, why = compute_state(events)
-    token = os.environ.get("GITHUB_TOKEN")
-    calendar = fetch_calendar(token)
+def main() -> None:
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("PET_GITHUB_TOKEN")
+    events = fetch_events(USER)
+    repos = fetch_repos(USER)
+    langs = fetch_languages(USER, repos)
+    calendar = graph_api.fetch_calendar(token, USER)
+    activity = graph_api.fetch_activity(token, USER) or {}
+    status = decide(events, activity=activity)
 
-    os.makedirs("dist", exist_ok=True)
+    dist = pathlib.Path("dist")
+    dist.mkdir(exist_ok=True)
     outputs = {
-        "pet.svg": build_svg(state, why, "dark"),
-        "pet-light.svg": build_svg(state, why, "light"),
-        "graph.svg": build_graph_svg(state, why, calendar, "dark"),
-        "graph-light.svg": build_graph_svg(state, why, calendar, "light"),
-        # comparison variant: full contribution-green cat
-        "pet-green.svg": build_svg(state, why, "dark", body_override="#39d353"),
+        "graph.svg": graph_render.build_graph_svg(status.state, status.caption, calendar, "dark"),
+        "graph-light.svg": graph_render.build_graph_svg(status.state, status.caption, calendar, "light"),
+        "pet.svg": render.render(status.state, status.caption, render.DARK),
+        "pet-light.svg": render.render(status.state, status.caption, render.LIGHT),
+        "langs.svg": charts.langs_chart(langs, len(repos), render.DARK),
+        "langs-light.svg": charts.langs_chart(langs, len(repos), render.LIGHT),
     }
-    for filename, svg in outputs.items():
-        path = os.path.join("dist", filename)
-        with open(path, "w", encoding="utf-8") as fh:
-            fh.write(svg)
-        print(f"wrote {path} ({len(svg)} bytes)")
-    print(f"state: {state} - {why}")
-    print(f"calendar: {'ok' if calendar else 'unavailable'}")
+    for name, svg in outputs.items():
+        (dist / name).write_text(svg, encoding="utf-8")
+        print(f"wrote dist/{name} ({len(svg)} bytes)")
+    cal = f"{calendar['total']} contributions" if calendar else "unavailable"
+    lp = activity.get("last_push") if activity else None
+    print(f"state={status.state} | caption={status.caption!r} | api_ok={status.api_ok}")
+    print(f"calendar={cal} | last_push={lp} | events={len(events)} repos={len(repos)} langs={len(langs)}")
 
 
 if __name__ == "__main__":

@@ -1,75 +1,75 @@
-"""Hand-crafted pixel grids - neko-informed: 1px outline style, tall diagonal
-ears, omega mouth, long whiskers, thin sweeping tail.
-'.' = empty, 'X' = outline/body, 'p' = pink (nose/inner ear).
-Eyes and whiskers are declared separately so the renderer can blink/animate them."""
+"""Hand-crafted pixel grids for the cat.
 
-# ---------------- banner cat: sitting front view (20 wide x 16 tall)
-SIT_FRONT = [
-    "....................",
-    "....X..........X....",
-    "....X.X......X.X....",
-    "....X..X....X..X....",
-    "....X...X..X...X....",
-    "....X....XX....X....",
-    "....X..........X....",
-    "....X..........X....",
-    "....X....p.....X....",
-    "....X.XXX.XXX..X....",
-    "....X..........X....",
-    ".....X........X.....",
-    "......X......X......",
-    ".....XX......XX.....",
-    "....X.XXXXXXXX.X....",
-    "....XXXXXXXXXXXXX...",
-]
+Side-view grids (WALK/SIT/CURL): 16 cols, chars X=body o=eye p=nose T=tail.
+Front-view mochi kitty (FRONT_*): 16x14, used by graph_render.py.
+"""
 
-SIT_EYES = [(6, 7), (13, 7)]
-SIT_WHISKERS = [(1, 7), (2, 7), (1, 8), (2, 8), (17, 7), (18, 7), (17, 8), (18, 8)]
-# angry brows for the grumpy state (drawn in accent, angled toward the eyes)
-SIT_BROWS = [(5, 6), (6, 6), (13, 6), (14, 6)]
-
-# tail overlays (wag animation swaps these two groups)
-TAIL_A = [(16, 15), (17, 15), (18, 15), (19, 15), (19, 14)]          # swept right
-TAIL_B = [(19, 15), (19, 14), (19, 13), (18, 13), (18, 12)]          # curl up
-
-# ---------------- sleeping curl (20 x 14)
-CURL_BODY = [
-    "....................",
-    ".....X....X.........",
-    ".....XX..XX.........",
-    "....XXXXXXXX........",
-    "...XXXXXXXXXX.......",
-    "..XXXXXXXXXXXX......",
-    "..XXXXXXXXXXXX......",
-    "..XXXXXXXXXXXXXX....",
-    "..XXXXXXXXXXXXXX....",
-    "..XXXXXXXXXXXXXX....",
-    "...XXXXXXXXXXXX.....",
-    "....XXXXXXXXXX......",
-    "....................",
-    "....................",
-]
-CURL_LIDS = [(7, 6), (8, 6), (12, 6), (13, 6)]
-
-# ---------------- graph kitty: small front mochi (16 wide x 14 tall)
-FRONT_BODY = [
+_BODY = [
     "................",
-    "...X........X...",
-    "...X.X....X.X...",
-    "...X..X..X..X...",
-    "...X...XX...X...",
-    "...X........X...",
-    "...X........X...",
-    "...X...pp...X...",
-    "...X.XX.XX..X...",
-    "...X........X...",
-    "....X......X....",
-    "....XX....XX....",
-    "...X.XXXXXX.X...",
-    "...XXXXXXXXXX...",
+    ".........XX.XX..",
+    "........XXXXXXX.",
+    "........XoXXXoX.",
+    "........XXXXpXX.",
+    "........XXXXXXX.",
+    "......XXXXXXXXX.",
+    "...T.XXXXXXXXXX",
+    "..TTXXXXXXXXXXX",
+    "..TXXXXXXXXXXXX",
+    "...XXXXXXXXXXXX",
+    "...XXXXXXXXXXXX",
 ]
-FRONT_EYES = [(5, 6), (10, 6)]
-FRONT_WHISKERS = [(1, 6), (1, 7), (14, 6), (14, 7)]
+
+_LEGS_A = ["....XX...XX.....", "....XX...XX....."]
+_LEGS_B = [".....XX...XX....", ".....XX...XX...."]
+_LEGS_SIT = ["....XXXXXXXX....", "....XXXXXXXX...."]
+
+WALK_A = _BODY + _LEGS_A
+WALK_B = _BODY + _LEGS_B
+SIT = _BODY + _LEGS_SIT
+
+CURL = [
+    "................",
+    ".....XXXXXX.....",
+    "...XXXXXXXXXX...",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXXXXXXXX..",
+    "...XXXXXXXXXX...",
+    ".....XXXXXXXX...",
+    "......XXXX......",
+]
+
+
+def back_view(grid: list) -> list:
+    """Flip horizontally and erase the face - cat has turned its back on you."""
+    return [row[::-1].replace("o", "X").replace("p", "X") for row in grid]
+
+
+# ---- front-facing mochi kitty (for graph_render.py) -----------------------
+# 16 cols x 14 rows. X = body, p = nose. Eyes/ears/collar/whiskers are drawn
+# as coordinate overlays by graph_render so they can be recoloured per palette.
+
+FRONT_BODY = [
+    "..XX........XX..",
+    "..XXX......XXX..",
+    "..XXXXXXXXXXXX..",
+    ".XXXXXXXXXXXXXX.",
+    ".XXXXXXXXXXXXXX.",
+    ".XXXXXXXXXXXXXX.",
+    ".XXXXXXXXXXXXXX.",
+    ".XXXXXXpXXXXXXX.",
+    ".XXXXXXXXXXXXXX.",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXXXXXXXX..",
+    ".XXXXXXXXXXXXXX.",
+    ".XXXXXXXXXXXXXX.",
+    "..XX..XXXX..XX..",
+]
+
+FRONT_EYES = [(4, 5), (11, 5)]
+FRONT_INNER_EARS = [(3, 1), (12, 1)]
+FRONT_COLLAR_BAND = [(x, 9) for x in range(3, 13)]
+FRONT_COLLAR_TAG = [(7, 10), (8, 10)]
+FRONT_WHISKERS = [(1, 6), (14, 6), (1, 7), (14, 7)]
 
 HEART = [
     ".h.h.",
@@ -78,35 +78,3 @@ HEART = [
     ".hhh.",
     "..h..",
 ]
-
-BOWL = [
-    "............",
-    ".XXXXXXXXXX.",
-    "..XXXXXXXX..",
-    "...XXXXXX...",
-    "............",
-]
-# ---------------- props for the banner scene
-YARN = [
-    "..hh...",
-    ".hhhh..",
-    "hh.hhh.",
-    "hhhh.h.",
-    ".hhhh..",
-    "..hh...",
-]
-# tucked/extended paw positions for the yarn bat (in cat grid coords)
-PAW_TUCKED = [(14, 11), (15, 11), (14, 12), (15, 12)]
-PAW_EXTENDED = [(16, 12), (17, 12), (18, 12), (19, 12), (19, 11)]
-
-# head/body split for animations (row ranges of SIT_FRONT)
-SIT_HEAD_ROWS = (0, 10)   # rows 0..10 move with the head (eat bobs)
-SIT_BODY_ROWS = (11, 15)  # rows 11..15 stay put
-
-# colour accents: pink inner ears + GitHub-blue collar with green tag
-SIT_INNER_EARS = [(5, 2), (14, 2), (5, 3), (6, 3), (13, 3), (14, 3)]
-FRONT_INNER_EARS = [(4, 2), (11, 2), (4, 3), (5, 3), (10, 3), (11, 3)]
-SIT_COLLAR_BAND = [(c, 12) for c in range(6, 14)]
-SIT_COLLAR_TAG = [(9, 13), (10, 13)]
-FRONT_COLLAR_BAND = [(c, 11) for c in range(4, 12)]
-FRONT_COLLAR_TAG = [(7, 12), (8, 12)]
