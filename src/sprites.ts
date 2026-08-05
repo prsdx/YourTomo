@@ -1,32 +1,33 @@
-// Hand-crafted pixel grids for the cat - mochi style: solid blob body,
-// big rounded head, pink inner ears, blue collar (the design owner approved).
+// Hand-crafted pixel grids for the cat - mochi style per owner reference:
+// solid blob body, SHORT ears with pink insides, full-width blue collar band,
+// dot eyes, single nose pixel, rounded uniform silhouette.
 // "." = empty, "X" = body, "p" = pink nose. Eyes/ears/collar/whiskers/brows
 // are coordinate overlays so the renderer can recolour and animate them.
 
 // ---------------- banner cat: sitting front view (20 wide x 16 tall)
 export const SIT_FRONT = [
     "....................",
-    "....XX........XX....",
-    "...XXXX......XXXX...",
-    "...XXXXXXXXXXXXXX...",
+    "....XX......XX....",
+    "..XXXX........XXXX..",
+    "..XXXXXXXXXXXXXXXX..",
+    "..XXXXXXXXXXXXXXXX..",
+    "..XXXoXXXXXXXXoXXX..",
+    "..XXXXXXXXXXXXXXXX..",
+    "..XXXXXXXXpXXXXXXX..",
     "..XXXXXXXXXXXXXXXX..",
     "..XXXXXXXXXXXXXXXX..",
     "..XXXXXXXXXXXXXXXX..",
-    "..XXXXXXXpXXXXXXXX..",
-    "..XXXXXXXXXXXXXXXX..",
-    "...XXXXXXXXXXXXXX...",
-    "...XXXXXXXXXXXXXX...",
     "..XXXXXXXXXXXXXXXX..",
     "..XXXXXXXXXXXXXXXX..",
     "..XXXXXXXXXXXXXXXX..",
-    ".XXXXXXXXXXXXXXXXXX.",
-    ".XXX...XXXXXX...XXX.",
+    "..XXXXXXXXXXXXXXXX..",
+    "...XXX..XXXX..XXX...",
 ];
 
-export const SIT_EYES: Array<[number, number]> = [[6, 5], [13, 5]];
+export const SIT_EYES: Array<[number, number]> = [[5, 5], [14, 5]];
 export const SIT_WHISKERS: Array<[number, number]> = [[1, 6], [1, 7], [18, 6], [18, 7]];
 // angry brows for the grumpy state (drawn in accent, above the eyes)
-export const SIT_BROWS: Array<[number, number]> = [[5, 4], [6, 4], [13, 4], [14, 4]];
+export const SIT_BROWS: Array<[number, number]> = [[4, 4], [5, 4], [14, 4], [15, 4]];
 
 // tail overlays (wag animation swaps these two groups)
 export const TAIL_A: Array<[number, number]> = [[17, 15], [18, 15], [19, 15], [19, 14]]; // swept right
@@ -51,24 +52,24 @@ export const CURL_BODY = [
 ];
 export const CURL_LIDS: Array<[number, number]> = [[7, 6], [8, 6], [12, 6], [13, 6]];
 
-// ---------------- graph kitty: small front mochi (16 wide x 14 tall)
+// ---------------- graph kitty: small front mochi, solid fill (16 x 14)
 export const FRONT_BODY = [
     "................",
-    "...X........X...",
-    "...X.X....X.X...",
-    "...X..X..X..X...",
-    "...X...XX...X...",
-    "...X........X...",
-    "...X........X...",
-    "...X...pp...X...",
-    "...X.XX.XX..X...",
-    "...X........X...",
-    "....X......X....",
-    "....XX....XX....",
-    "...X.XXXXXX.X...",
-    "...XXXXXXXXXX...",
+    "..XX........XX..",
+    "..XXXX....XXXX..",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXXXXXXXX..",
+    "..XXoXXXXXXoXX..",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXppXXXXX..",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXXXXXXXX..",
+    ".XXXXXXXXXXXXXX.",
+    ".XXX..XXXX..XXX.",
 ];
-export const FRONT_EYES: Array<[number, number]> = [[5, 6], [10, 6]];
+export const FRONT_EYES: Array<[number, number]> = [[5, 5], [10, 5]];
 export const FRONT_WHISKERS: Array<[number, number]> = [[1, 6], [1, 7], [14, 6], [14, 7]];
 
 export const HEART = [
@@ -105,9 +106,9 @@ export const SIT_HEAD_ROWS: [number, number] = [0, 9];
 export const SIT_BODY_ROWS: [number, number] = [10, 15];
 
 // colour accents: pink inner ears + GitHub-blue collar with green tag
-export const SIT_INNER_EARS: Array<[number, number]> = [[4, 2], [5, 2], [14, 2], [15, 2]];
-export const FRONT_INNER_EARS: Array<[number, number]> = [[4, 2], [11, 2], [4, 3], [5, 3], [10, 3], [11, 3]];
-export const SIT_COLLAR_BAND: Array<[number, number]> = Array.from({ length: 12 }, (_, i) => [i + 4, 10] as [number, number]);
+export const SIT_INNER_EARS: Array<[number, number]> = [[3, 2], [4, 2], [13, 2], [14, 2]];
+export const FRONT_INNER_EARS: Array<[number, number]> = [[3, 2], [4, 2], [11, 2], [12, 2]];
+export const SIT_COLLAR_BAND: Array<[number, number]> = Array.from({ length: 16 }, (_, i) => [i + 2, 10] as [number, number]);
 export const SIT_COLLAR_TAG: Array<[number, number]> = [[9, 11], [10, 11]];
-export const FRONT_COLLAR_BAND: Array<[number, number]> = Array.from({ length: 8 }, (_, i) => [i + 4, 11] as [number, number]);
-export const FRONT_COLLAR_TAG: Array<[number, number]> = [[7, 12], [8, 12]];
+export const FRONT_COLLAR_BAND: Array<[number, number]> = Array.from({ length: 12 }, (_, i) => [i + 2, 10] as [number, number]);
+export const FRONT_COLLAR_TAG: Array<[number, number]> = [[7, 11], [8, 11]];
