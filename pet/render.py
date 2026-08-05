@@ -81,8 +81,10 @@ def _tail_wag(pal, y0, dur="1.4s"):
 
 
 PAL_CURRENT = None
+INTRO_S = 7
+MASTER_BEGIN = 0
 
-def _head_group(state, pal, colors, y0, master_dur, eat_window=None):
+def _head_group(state, pal, colors, y0, master_dur, eat_window=None, begin=0):
     """Head rows (+eyes/whiskers/brows) with optional eat-bobbing on the master clock."""
     h0, h1 = sprites.SIT_HEAD_ROWS
     head = []
@@ -95,7 +97,7 @@ def _head_group(state, pal, colors, y0, master_dur, eat_window=None):
         kt = ";".join(f"{t:.3f}" for t in times)
         head.append(
             f'<g><animateTransform attributeName="transform" type="translate" '
-            f'values="{";".join(vals)}" keyTimes="{kt}" dur="{master_dur}s" repeatCount="indefinite"/>'
+            f'values="{";".join(vals)}" keyTimes="{kt}" dur="{master_dur}s" begin="{begin}s" repeatCount="indefinite"/>'
         )
     else:
         head.append("<g>")
@@ -109,7 +111,7 @@ def _head_group(state, pal, colors, y0, master_dur, eat_window=None):
     return head
 
 
-def _body_group(pal, colors, y0, master_dur, bat_window=None, wag="1.4s"):
+def _body_group(pal, colors, y0, master_dur, bat_window=None, wag="1.4s", begin=0):
     b0, b1 = sprites.SIT_BODY_ROWS
     body = _rects(sprites.SIT_FRONT[b0:b1 + 1], colors, 0, y0 + b0 * PX)
     body.extend(_pixels(sprites.SIT_COLLAR_BAND, PAL_CURRENT["collar"], 0, y0))
@@ -123,11 +125,11 @@ def _body_group(pal, colors, y0, master_dur, bat_window=None, wag="1.4s"):
         kt = f"0;{w0:.3f};{mid:.3f};{w1:.3f};1"
         body.append(
             f'<g><animate attributeName="opacity" values="1;1;0;0;1" keyTimes="{kt}" '
-            f'calcMode="discrete" dur="{master_dur}s" repeatCount="indefinite"/>{tucked}</g>'
+            f'calcMode="discrete" dur="{master_dur}s" begin="{begin}s" repeatCount="indefinite"/>{tucked}</g>'
         )
         body.append(
             f'<g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="{kt}" '
-            f'calcMode="discrete" dur="{master_dur}s" repeatCount="indefinite"/>{out}</g>'
+            f'calcMode="discrete" dur="{master_dur}s" begin="{begin}s" repeatCount="indefinite"/>{out}</g>'
         )
     return body
 
@@ -147,7 +149,7 @@ def _hearts(pal):
     return out
 
 
-def _yarn_prop(pal, master_dur, bat_window):
+def _yarn_prop(pal, master_dur, bat_window, begin=0):
     """Yarn ball sitting in the scene; rolls away when batted, comes back."""
     y0 = GROUND_Y - 6 * PX
     cells = _rects(sprites.YARN, {"h": pal["yarn"]}, 0, 0)
@@ -157,13 +159,13 @@ def _yarn_prop(pal, master_dur, bat_window):
         vals = "0 0;0 0;52 -10;52 0;52 0;0 0"
         return [
             f'<g><animateTransform attributeName="transform" type="translate" '
-            f'values="{vals}" keyTimes="{kt}" dur="{master_dur}s" repeatCount="indefinite"/>'
+            f'values="{vals}" keyTimes="{kt}" dur="{master_dur}s" begin="{begin}s" repeatCount="indefinite"/>'
             + "".join(cells) + "</g>"
         ]
     return cells
 
 
-def _props(pal, colors, state, master_dur=None, bat_window=None):
+def _props(pal, colors, state, master_dur=None, bat_window=None, begin=0):
     parts = []
     # cardboard box at home
     parts.append(
@@ -176,7 +178,7 @@ def _props(pal, colors, state, master_dur=None, bat_window=None):
     )
     # yarn
     if master_dur and bat_window:
-        parts.append(f'<g transform="translate({YARN_X},0)">' + "".join(_yarn_prop(pal, master_dur, bat_window)) + "</g>")
+        parts.append(f'<g transform="translate({YARN_X},0)">' + "".join(_yarn_prop(pal, master_dur, bat_window, begin)) + "</g>")
     else:
         parts.append(f'<g transform="translate({YARN_X},0)">' + "".join(_yarn_prop(pal, 1, None)) + "</g>")
     # bowl (empty for hungry -> ground colour, full otherwise -> pink kibble dot)
@@ -213,6 +215,25 @@ def _sleeping_cat(pal, colors):
     return parts
 
 
+
+def _welcome(pal):
+    """One-shot welcome: speech bubble + bouncing scroll arrow. Plays once, then vanishes."""
+    dur = INTRO_S
+    fade = "0;0;1;1;0;0"
+    kt = "0;0.07;0.14;0.85;0.96;1"
+    out = [
+        '<g opacity="0"><animate attributeName="opacity" values="' + fade + '" keyTimes="' + kt + '" '
+        f'dur="{dur}s" repeatCount="1" fill="freeze"/>'
+    ]
+    out.append('<rect x="60" y="12" width="320" height="46" rx="10" fill="' + pal["ground"] + '"/>')
+    out.append('<polygon points="110,58 130,58 118,74" fill="' + pal["ground"] + '"/>')
+    out.append("<text x='76' y='31' font-family='monospace' font-size='13' fill='" + pal["body"] + "'>hey! welcome to Shubham's corner</text>")
+    out.append("<text x='76' y='48' font-family='monospace' font-size='12' fill='" + pal["text"] + "'>scroll down for projects + contact</text>")
+    out.append('<polygon points="210,66 226,66 218,78" fill="' + pal["accent"] + '">'
+               '<animateTransform attributeName="transform" type="translate" values="0 0;0 6;0 0" dur="0.8s" repeatCount="indefinite"/></polygon>')
+    out.append("</g>")
+    return out
+
 def _routine_cat(state, pal, colors):
     dur = STATE_TEMPO.get(state, 32)
     if state == "hungry":
@@ -233,15 +254,15 @@ def _routine_cat(state, pal, colors):
     kt = "0;0.12;0.35;0.45;0.62;0.82;1"
     xs = f"{HOME_X};{CAT_AT_BOWL};{CAT_AT_BOWL};{CAT_AT_YARN};{CAT_AT_YARN};{HOME_X};{HOME_X}"
     cat = [
-        f'<g><animateTransform attributeName="transform" type="translate" '
-        f'values="{xs.replace(";", " 0;")} 0" keyTimes="{kt}" dur="{dur}s" repeatCount="indefinite"/>'
+        f'<g transform="translate({HOME_X},0)"><animateTransform attributeName="transform" type="translate" '
+        f'values="{xs.replace(";", " 0;")} 0" keyTimes="{kt}" dur="{dur}s" begin="{INTRO_S}s" repeatCount="indefinite"/>'
     ]
     cat.append(
         '<g><animateTransform attributeName="transform" type="translate" '
         'values="0 0;0 -3;0 0" dur="0.7s" repeatCount="indefinite"/>'
     )
-    cat.extend(_body_group(pal, colors, CAT_Y, dur, bat_window=(0.66, 0.78)))
-    cat.extend(_head_group(state, pal, colors, CAT_Y, dur, eat_window=(0.15, 0.33)))
+    cat.extend(_body_group(pal, colors, CAT_Y, dur, bat_window=(0.66, 0.78), begin=INTRO_S))
+    cat.extend(_head_group(state, pal, colors, CAT_Y, dur, eat_window=(0.15, 0.33), begin=INTRO_S))
     if state == "content":
         cat.extend(_hearts(pal))
     if state == "zoomies":
@@ -274,8 +295,11 @@ def build_svg(state, caption, palette="dark", body_override=None):
         parts.extend(_sleeping_cat(pal, colors))
     else:
         dur = STATE_TEMPO.get(state, 32)
-        parts.extend(_props(pal, colors, state, dur, (0.66, 0.78)))
+        intro = state in ("content", "zoomies")
+        parts.extend(_props(pal, colors, state, dur, (0.66, 0.78), begin=INTRO_S if intro else 0))
         parts.extend(_routine_cat(state, pal, colors))
+        if intro:
+            parts.extend(_welcome(pal))
     label = f"state: {state} - {caption} · regenerated every 6h"
     parts.append(
         f'<text x="16" y="{HEIGHT - 10}" font-family="monospace" font-size="12" '
