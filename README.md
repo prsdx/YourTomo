@@ -1,5 +1,10 @@
 # github-pet
 
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet-light.svg">
+  <img alt="my github pet" src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg" width="100%">
+</picture>
+
 A pixel cat that lives on my GitHub profile and reacts to my public activity.
 
 - **Zero dependencies** — Python standard library only
@@ -17,7 +22,7 @@ A pixel cat that lives on my GitHub profile and reacts to my public activity.
 | hungry | no pushes for 48–96h |
 | grumpy | no pushes for 96h+ |
 
-## Embed
+## Embed it yourself
 
 ```html
 <picture>
