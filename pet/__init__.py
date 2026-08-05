@@ -1,1 +1,0 @@
-"""github-pet: a pixel cat that reacts to real GitHub activity."""
