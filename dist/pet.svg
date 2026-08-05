@@ -95,5 +95,5 @@
 <text x='76' y='48' font-family='monospace' font-size='12' fill='#8b949e'>scroll down for projects + contact</text>
 <polygon points="210,66 226,66 218,78" fill="#58a6ff"><animateTransform attributeName="transform" type="translate" values="0 0;0 6;0 0" dur="0.8s" repeatCount="indefinite"/></polygon>
 </g>
-<text x="16" y="180" font-family="monospace" font-size="12" fill="#8b949e">state: zoomies - zoomies!! 15 pushes in the last 24h · regenerated every 6h</text>
+<text x="16" y="180" font-family="monospace" font-size="12" fill="#8b949e">state: zoomies - zoomies!! 16 pushes in the last 24h · regenerated every 6h</text>
 </svg>

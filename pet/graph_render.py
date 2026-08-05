@@ -20,7 +20,7 @@ PALETTES = {
                   cells=["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"]),
 }
 
-STATE_TEMPO = {"zoomies": 8, "content": 18, "hungry": 24, "grumpy": 28}
+STATE_TEMPO = {"zoomies": 16, "content": 30, "hungry": 36, "grumpy": 42}
 
 
 def _level(count):
@@ -56,7 +56,7 @@ def _rects(grid, colors, x0, y0, scale=SCALE):
 
 def _kitty(state, pal, colors, x_min, x_max):
     """Front-facing mochi kitty hopping along the top of the graph, ping-pong."""
-    dur = STATE_TEMPO.get(state, 18)
+    dur = STATE_TEMPO.get(state, 30)
     kt = "0;0.45;0.5;0.95;1"
     cat_w = 16 * SCALE
     cx = (x_min + x_max) / 2
@@ -66,7 +66,7 @@ def _kitty(state, pal, colors, x_min, x_max):
         f'dur="{dur}s" repeatCount="indefinite"/>',
         # hop bob (squash-free simple arc)
         '<g><animateTransform attributeName="transform" type="translate" '
-        'values="0 0;0 -6;0 0" keyTimes="0;0.5;1" dur="0.55s" repeatCount="indefinite"/>',
+        'values="0 0;0 -4;0 0" keyTimes="0;0.5;1" dur="0.9s" repeatCount="indefinite"/>',
     ]
     body = _rects(sprites.FRONT_BODY, colors, 0, TOP - 14 * SCALE - 4)
     yb = TOP - 14 * SCALE - 4
