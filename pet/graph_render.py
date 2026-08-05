@@ -70,11 +70,11 @@ def _kitty(state, pal, colors, x_min, x_max):
     ]
     body = _rects(sprites.FRONT_BODY, colors, 0, TOP - 14 * SCALE - 4)
     cat.extend(body)
-    # whisker stubs outside the cheeks
+    # long whiskers, neko style
     for wx, wy in sprites.FRONT_WHISKERS:
         cat.append(
-            f'<rect x="{wx * SCALE - (SCALE if wx == 0 else -(SCALE))}" y="{TOP - 14 * SCALE - 4 + wy * SCALE + 1}" '
-            f'width="{SCALE}" height="1.5" fill="{pal["body"]}" opacity="0.7"/>'
+            f'<rect x="{wx * SCALE - (2 * SCALE if wx < 8 else -SCALE)}" y="{TOP - 14 * SCALE - 4 + wy * SCALE + 1}" '
+            f'width="{3 * SCALE}" height="1.5" fill="{pal["body"]}" opacity="0.8"/>'
         )
     # blink
     open_r = "".join(

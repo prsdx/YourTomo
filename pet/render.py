@@ -1,13 +1,15 @@
-"""Renders the banner: a side-view cat that patrols back and forth (never leaves)."""
+"""Renders the banner: a sitting outline cat with blinking eyes, wagging tail,
+long whiskers and a slow scoot patrol. State extras: hearts (content),
+empty bowl (hungry), angry brows (grumpy), motion lines (zoomies)."""
 from xml.sax.saxutils import escape
 
 from pet import sprites
 
 PX = 6
 WIDTH, HEIGHT = 894, 180
-GROUND_Y = 150
-CAT_Y = GROUND_Y - 14 * PX
-CAT_HALF = 60  # half the cat width, for the flip pivot
+GROUND_Y = 152
+CAT_Y = GROUND_Y - 16 * PX
+CAT_W = 20 * PX
 
 PALETTES = {
     "dark": dict(bg="#0d1117", body="#e6edf3", accent="#58a6ff", pink="#ff9bce",
@@ -16,7 +18,7 @@ PALETTES = {
                   ground="#d0d7de", text="#57606a", heart="#cf222e", lid="#ffffff"),
 }
 
-STATE_TEMPO = {"zoomies": 10, "content": 24, "hungry": 30, "grumpy": 34}
+STATE_TEMPO = {"zoomies": 10, "content": 26, "hungry": 34, "grumpy": 38}
 
 
 def _rects(grid, colors, x0, y0, scale=PX):
@@ -38,40 +40,44 @@ def _rects(grid, colors, x0, y0, scale=PX):
     return out
 
 
-def _blink_eyes(pal, blink=True):
-    open_r = "".join(
-        f'<rect x="{ex * PX - CAT_HALF}" y="{CAT_Y + ey * PX}" width="{PX}" height="{PX}" fill="{pal["accent"]}"/>'
-        for ex, ey in sprites.WALK_EYES
-    )
-    lid_r = "".join(
-        f'<rect x="{ex * PX - CAT_HALF}" y="{CAT_Y + ey * PX}" width="{2 * PX}" height="{PX}" fill="{pal["lid"]}"/>'
-        for ex, ey in sprites.WALK_EYES
-    )
-    if not blink:
-        return [open_r]
+def _pixels(coords, color, x0, y0, scale=PX, w=None, h=None):
+    w = w or scale
+    h = h or scale
     return [
-        '<g><animate attributeName="opacity" values="1;0;1" keyTimes="0;0.97;1" '
-        'calcMode="discrete" dur="4.5s" repeatCount="indefinite"/>' + open_r + "</g>",
-        '<g opacity="0"><animate attributeName="opacity" values="0;1;0" keyTimes="0;0.97;1" '
-        'calcMode="discrete" dur="4.5s" repeatCount="indefinite"/>' + lid_r + "</g>",
+        f'<rect x="{x0 + cx * scale}" y="{y0 + cy * scale}" width="{w}" height="{h}" fill="{color}"/>'
+        for cx, cy in coords
     ]
 
 
-def _whiskers(pal):
+def _blink(pal):
+    open_r = "".join(_pixels(sprites.SIT_EYES, pal["accent"], 0, CAT_Y))
+    lid_r = "".join(_pixels(sprites.SIT_EYES, pal["lid"], 0, CAT_Y, w=2 * PX))
     return [
-        f'<rect x="{wx * PX - CAT_HALF}" y="{CAT_Y + wy * PX + 2}" width="{3 * PX}" height="2" '
-        f'fill="{pal["body"]}" opacity="0.7"/>'
-        for wx, wy in sprites.WALK_WHISKERS
+        '<g><animate attributeName="opacity" values="1;0;1" keyTimes="0;0.96;1" '
+        'calcMode="discrete" dur="4.2s" repeatCount="indefinite"/>' + open_r + "</g>",
+        '<g opacity="0"><animate attributeName="opacity" values="0;1;0" keyTimes="0;0.96;1" '
+        'calcMode="discrete" dur="4.2s" repeatCount="indefinite"/>' + lid_r + "</g>",
+    ]
+
+
+def _tail_wag(pal):
+    a = "".join(_pixels(sprites.TAIL_A, pal["body"], 0, CAT_Y))
+    b = "".join(_pixels(sprites.TAIL_B, pal["body"], 0, CAT_Y))
+    return [
+        '<g><animate attributeName="opacity" values="1;0;1" keyTimes="0;0.5;1" '
+        f'calcMode="discrete" dur="1.4s" repeatCount="indefinite"/>{a}</g>',
+        '<g opacity="0"><animate attributeName="opacity" values="0;1;0" keyTimes="0;0.5;1" '
+        f'calcMode="discrete" dur="1.4s" repeatCount="indefinite"/>{b}</g>',
     ]
 
 
 def _hearts(pal):
     out = []
-    for bx, by, beg in ((13, -3, "0.4s"), (16, -5, "1.9s")):
-        cells = "".join(_rects(sprites.HEART, {"h": pal["heart"]}, bx * PX - CAT_HALF, by * PX, scale=3))
+    for bx, by, beg in ((14, -2, "0.4s"), (17, -4, "1.9s")):
+        cells = "".join(_rects(sprites.HEART, {"h": pal["heart"]}, bx * PX, by * PX, scale=3))
         out.append(
             f'<g opacity="0">'
-            f'<animateTransform attributeName="transform" type="translate" values="0 0;6 -20" '
+            f'<animateTransform attributeName="transform" type="translate" values="0 0;6 -22" '
             f'dur="2.6s" begin="{beg}" repeatCount="indefinite"/>'
             f'<animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.2;0.7;1" '
             f'dur="2.6s" begin="{beg}" repeatCount="indefinite"/>'
@@ -84,7 +90,7 @@ def _zzz(pal):
     out = []
     for dx, size, beg in ((0, 12, "0s"), (14, 15, "1s"), (30, 18, "2s")):
         out.append(
-            f'<text x="{170 + dx}" y="86" font-family="monospace" font-size="{size}" '
+            f'<text x="{170 + dx}" y="80" font-family="monospace" font-size="{size}" '
             f'fill="{pal["accent"]}" opacity="0">z'
             f'<animateTransform attributeName="transform" type="translate" values="0 0;8 -26" '
             f'dur="3s" begin="{beg}" repeatCount="indefinite"/>'
@@ -95,52 +101,48 @@ def _zzz(pal):
 
 
 def _sleeping_cat(pal, colors):
-    parts = _rects(sprites.CURL_BODY, colors, 90, CAT_Y)
+    parts = _rects(sprites.CURL_BODY, colors, 90, GROUND_Y - 14 * PX)
     parts.extend(
-        f'<rect x="{90 + ex * PX}" y="{CAT_Y + ey * PX}" width="{PX}" height="{PX}" fill="{pal["lid"]}"/>'
+        f'<rect x="{90 + ex * PX}" y="{GROUND_Y - 14 * PX + ey * PX}" width="{PX}" height="{PX}" fill="{pal["lid"]}"/>'
         for ex, ey in sprites.CURL_LIDS
     )
     parts.extend(_zzz(pal))
     return parts
 
 
-def _patrolling_cat(state, pal, colors):
-    """Cat walks right, turns, walks back - it never leaves the banner."""
-    dur = STATE_TEMPO.get(state, 24)
-    x_min, x_max = 90, WIDTH - 90
-    kt = "0;0.45;0.5;0.95;1"
+def _sitting_cat(state, pal, colors):
+    dur = STATE_TEMPO.get(state, 26)
+    x_min, x_max = 70, WIDTH - 70 - CAT_W
+    kt = "0;0.42;0.5;0.92;1"
     cat = [
         f'<g><animateTransform attributeName="transform" type="translate" '
         f'values="{x_min} 0;{x_max} 0;{x_max} 0;{x_min} 0;{x_min} 0" keyTimes="{kt}" '
-        f'dur="{dur}s" repeatCount="indefinite"/>'
-    ]
-    # flip group: face right on the way out, left on the way back
-    cat.append(
-        f'<g><animateTransform attributeName="transform" type="scale" '
-        f'values="1 1;1 1;-1 1;-1 1;1 1" keyTimes="{kt}" calcMode="discrete" '
-        f'dur="{dur}s" repeatCount="indefinite"/>'
-    )
-    cat.append(
+        f'dur="{dur}s" repeatCount="indefinite"/>',
+        # gentle hop-scoot bob
         '<g><animateTransform attributeName="transform" type="translate" '
-        'values="0 0;0 -3;0 0" dur="0.4s" repeatCount="indefinite"/>'
-    )
-    # body drawn centered on x=0 so the flip pivots around the cat middle
-    cat.extend(_rects(sprites.WALK_BODY, colors, -CAT_HALF, CAT_Y))
-    legs_a = "".join(_rects(sprites.LEGS_A, colors, -CAT_HALF, CAT_Y + 12 * PX))
-    legs_b = "".join(_rects(sprites.LEGS_B, colors, -CAT_HALF, CAT_Y + 12 * PX))
-    cat.append(
-        '<g><animate attributeName="opacity" values="1;0;1" keyTimes="0;0.5;1" '
-        f'calcMode="discrete" dur="0.8s" repeatCount="indefinite"/>{legs_a}</g>'
-    )
-    cat.append(
-        '<g opacity="0"><animate attributeName="opacity" values="0;1;0" keyTimes="0;0.5;1" '
-        f'calcMode="discrete" dur="0.8s" repeatCount="indefinite"/>{legs_b}</g>'
-    )
-    cat.extend(_blink_eyes(pal))
-    cat.extend(_whiskers(pal))
+        'values="0 0;0 -4;0 0" keyTimes="0;0.5;1" dur="0.7s" repeatCount="indefinite"/>',
+    ]
+    cat.extend(_rects(sprites.SIT_FRONT, colors, 0, CAT_Y))
+    cat.extend(_pixels(sprites.SIT_WHISKERS, pal["body"], 0, CAT_Y))
+    cat.extend(_tail_wag(pal))
+    if state == "grumpy":
+        cat.extend(_pixels(sprites.SIT_BROWS, pal["accent"], 0, CAT_Y))
+        cat.extend(_blink(pal))
+    else:
+        cat.extend(_blink(pal))
     if state == "content":
         cat.extend(_hearts(pal))
-    cat.append("</g></g></g>")
+    if state == "zoomies":
+        for i, (ox, oy) in enumerate(((-46, 30), (-64, 55), (-40, 80))):
+            cat.append(
+                f'<rect x="{ox}" y="{CAT_Y + oy}" width="{6 * PX}" height="3" fill="{pal["body"]}" opacity="0.6">'
+                f'<animate attributeName="opacity" values="0.6;0.1;0.6" dur="0.5s" '
+                f'begin="{i * 0.15}s" repeatCount="indefinite"/></rect>'
+            )
+    cat.append("</g></g>")
+    if state == "hungry":
+        # empty bowl sitting in front of the cat's path midpoint
+        cat.extend(_rects(sprites.BOWL, {**colors, "X": pal["ground"]}, x_min + CAT_W + 30, GROUND_Y - 5 * PX))
     return cat
 
 
@@ -158,7 +160,7 @@ def build_svg(state, caption, palette="dark"):
     if state == "sleeping":
         parts.extend(_sleeping_cat(pal, colors))
     else:
-        parts.extend(_patrolling_cat(state, pal, colors))
+        parts.extend(_sitting_cat(state, pal, colors))
     label = f"state: {state} - {caption} · regenerated every 6h"
     parts.append(
         f'<text x="16" y="{HEIGHT - 10}" font-family="monospace" font-size="12" '
