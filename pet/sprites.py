@@ -1,7 +1,7 @@
 """Hand-crafted pixel grids. '.' = transparent, 'X' = body, 'p' = pink accent.
-Eye positions are declared separately so the renderer can blink them.
-Every row must be exactly 20 characters wide."""
+Eye positions declared separately so the renderer can blink them."""
 
+# ---- side-view cat (banner) - bigger triangle ears, curled-up tail, slimmer body
 WALK_BODY = [
     "....................",
     "..........X....X....",
@@ -11,11 +11,11 @@ WALK_BODY = [
     ".........XXXXXXpX...",
     ".........XXXXXXXX...",
     "..X......XXXXXXXX...",
-    "..XX..XXXXXXXXXX....",
+    "..X......XXXXXXXX...",
+    "..XXX.XXXXXXXXXX....",
     "..XXXXXXXXXXXXXX....",
     "..XXXXXXXXXXXXXX....",
-    "...XXXXXXXXXXXX.....",
-    "....................",
+    "....XXXXXXXXXX......",
     "....................",
 ]
 
@@ -30,6 +30,7 @@ LEGS_B = [
 ]
 
 WALK_EYES = [(10, 4), (14, 4)]
+WALK_WHISKERS = [(17, 4), (17, 5)]  # front of the face, extend right
 
 SIT_BODY = [
     "....................",
@@ -67,8 +68,28 @@ CURL_BODY = [
     "....................",
 ]
 
-# closed-eye dashes for the sleeping curl (drawn in lid colour)
 CURL_LIDS = [(7, 6), (8, 6), (12, 6), (13, 6)]
+
+# ---- front-facing mochi kitty (graph version) - big ears, pink inner ear, whiskers
+FRONT_BODY = [
+    "..X..........X..",
+    "..XX........XX..",
+    "..XpX......XpX..",
+    "..XXXXXXXXXXXX..",
+    ".XXXXXXXXXXXXXX.",
+    ".XXXXXXXXXXXXXX.",
+    ".XXXXXXXXXXXXXX.",
+    ".XXXXXXppXXXXXX.",
+    ".XXXXXXXXXXXXXX.",
+    ".XXXXXXXXXXXXXX.",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXXXXXXXX..",
+    "................",
+]
+
+FRONT_EYES = [(4, 5), (11, 5)]
+FRONT_WHISKERS = [(0, 5), (0, 6), (15, 5), (15, 6)]
 
 HEART = [
     ".h.h.",
@@ -76,4 +97,12 @@ HEART = [
     "hhhhh",
     ".hhh.",
     "..h..",
+]
+
+BOWL = [
+    "............",
+    ".XXXXXXXXXX.",
+    "..XXXXXXXX..",
+    "...XXXXXX...",
+    "............",
 ]
