@@ -21,11 +21,13 @@ CAT_AT_BOWL, CAT_AT_YARN = 500, 320
 PALETTES = {
     "dark": dict(bg="#0d1117", body="#e6edf3", accent="#58a6ff", pink="#ff9bce",
                  ground="#30363d", text="#8b949e", heart="#ff7b72", lid="#0d1117",
-                 yarn="#d2a8ff"),
+                 yarn="#d2a8ff", collar="#58a6ff", tag="#39d353"),
     "light": dict(bg="#ffffff", body="#1f2328", accent="#0969da", pink="#e8590c",
                   ground="#d0d7de", text="#57606a", heart="#cf222e", lid="#ffffff",
-                  yarn="#8250df"),
+                  yarn="#8250df", collar="#0969da", tag="#1a7f37"),
 }
+
+GITHUB_GREEN = "#39d353"
 
 STATE_TEMPO = {"zoomies": 14, "content": 32}
 
@@ -78,6 +80,8 @@ def _tail_wag(pal, y0, dur="1.4s"):
     ]
 
 
+PAL_CURRENT = None
+
 def _head_group(state, pal, colors, y0, master_dur, eat_window=None):
     """Head rows (+eyes/whiskers/brows) with optional eat-bobbing on the master clock."""
     h0, h1 = sprites.SIT_HEAD_ROWS
@@ -96,6 +100,7 @@ def _head_group(state, pal, colors, y0, master_dur, eat_window=None):
     else:
         head.append("<g>")
     head.extend(_rects(sprites.SIT_FRONT[h0:h1 + 1], colors, 0, y0))
+    head.extend(_pixels(sprites.SIT_INNER_EARS, PAL_CURRENT["pink"], 0, y0))
     head.extend(_pixels(sprites.SIT_WHISKERS, pal["body"], 0, y0))
     head.extend(_blink(pal, y0))
     if state == "grumpy":
@@ -107,6 +112,8 @@ def _head_group(state, pal, colors, y0, master_dur, eat_window=None):
 def _body_group(pal, colors, y0, master_dur, bat_window=None, wag="1.4s"):
     b0, b1 = sprites.SIT_BODY_ROWS
     body = _rects(sprites.SIT_FRONT[b0:b1 + 1], colors, 0, y0 + b0 * PX)
+    body.extend(_pixels(sprites.SIT_COLLAR_BAND, PAL_CURRENT["collar"], 0, y0))
+    body.extend(_pixels(sprites.SIT_COLLAR_TAG, PAL_CURRENT["tag"], 0, y0))
     body.extend(_tail_wag(pal, y0, dur=wag))
     if bat_window:
         w0, w1 = bat_window
@@ -248,8 +255,12 @@ def _routine_cat(state, pal, colors):
     return cat
 
 
-def build_svg(state, caption, palette="dark"):
-    pal = PALETTES[palette]
+def build_svg(state, caption, palette="dark", body_override=None):
+    global PAL_CURRENT
+    pal = dict(PALETTES[palette])
+    PAL_CURRENT = pal
+    if body_override:
+        pal["body"] = body_override
     colors = {"X": pal["body"], "p": pal["pink"]}
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" '

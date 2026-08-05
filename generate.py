@@ -20,6 +20,8 @@ def main():
         "pet-light.svg": build_svg(state, why, "light"),
         "graph.svg": build_graph_svg(state, why, calendar, "dark"),
         "graph-light.svg": build_graph_svg(state, why, calendar, "light"),
+        # comparison variant: full contribution-green cat
+        "pet-green.svg": build_svg(state, why, "dark", body_override="#39d353"),
     }
     for filename, svg in outputs.items():
         path = os.path.join("dist", filename)

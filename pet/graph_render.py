@@ -13,10 +13,10 @@ WIDTH, HEIGHT = 894, 210
 
 PALETTES = {
     "dark": dict(bg="#0d1117", body="#e6edf3", accent="#58a6ff", pink="#ff9bce",
-                 text="#8b949e", heart="#ff7b72", lid="#0d1117",
+                 text="#8b949e", heart="#ff7b72", lid="#0d1117", collar="#58a6ff", tag="#39d353",
                  cells=["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"]),
     "light": dict(bg="#ffffff", body="#1f2328", accent="#0969da", pink="#e8590c",
-                  text="#57606a", heart="#cf222e", lid="#ffffff",
+                  text="#57606a", heart="#cf222e", lid="#ffffff", collar="#0969da", tag="#1a7f37",
                   cells=["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"]),
 }
 
@@ -69,6 +69,9 @@ def _kitty(state, pal, colors, x_min, x_max):
         'values="0 0;0 -6;0 0" keyTimes="0;0.5;1" dur="0.55s" repeatCount="indefinite"/>',
     ]
     body = _rects(sprites.FRONT_BODY, colors, 0, TOP - 14 * SCALE - 4)
+    yb = TOP - 14 * SCALE - 4
+    for coords, col in ((sprites.FRONT_INNER_EARS, pal["pink"]), (sprites.FRONT_COLLAR_BAND, pal["collar"]), (sprites.FRONT_COLLAR_TAG, pal["tag"])):
+        body.extend(f'<rect x="{cx * SCALE}" y="{yb + cy * SCALE}" width="{SCALE}" height="{SCALE}" fill="{col}"/>' for cx, cy in coords)
     cat.extend(body)
     # long whiskers, neko style
     for wx, wy in sprites.FRONT_WHISKERS:

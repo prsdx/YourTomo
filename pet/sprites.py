@@ -102,3 +102,11 @@ PAW_EXTENDED = [(16, 12), (17, 12), (18, 12), (19, 12), (19, 11)]
 # head/body split for animations (row ranges of SIT_FRONT)
 SIT_HEAD_ROWS = (0, 10)   # rows 0..10 move with the head (eat bobs)
 SIT_BODY_ROWS = (11, 15)  # rows 11..15 stay put
+
+# colour accents: pink inner ears + GitHub-blue collar with green tag
+SIT_INNER_EARS = [(5, 2), (14, 2), (5, 3), (6, 3), (13, 3), (14, 3)]
+FRONT_INNER_EARS = [(4, 2), (11, 2), (4, 3), (5, 3), (10, 3), (11, 3)]
+SIT_COLLAR_BAND = [(c, 12) for c in range(6, 14)]
+SIT_COLLAR_TAG = [(9, 13), (10, 13)]
+FRONT_COLLAR_BAND = [(c, 11) for c in range(4, 12)]
+FRONT_COLLAR_TAG = [(7, 12), (8, 12)]
