@@ -1,0 +1,1 @@
+"""github-pet: pixel-cat state machine -> animated SVG."""
