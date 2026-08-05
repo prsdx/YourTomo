@@ -86,3 +86,19 @@ BOWL = [
     "...XXXXXX...",
     "............",
 ]
+# ---------------- props for the banner scene
+YARN = [
+    "..hh...",
+    ".hhhh..",
+    "hh.hhh.",
+    "hhhh.h.",
+    ".hhhh..",
+    "..hh...",
+]
+# tucked/extended paw positions for the yarn bat (in cat grid coords)
+PAW_TUCKED = [(14, 11), (15, 11), (14, 12), (15, 12)]
+PAW_EXTENDED = [(16, 12), (17, 12), (18, 12), (19, 12), (19, 11)]
+
+# head/body split for animations (row ranges of SIT_FRONT)
+SIT_HEAD_ROWS = (0, 10)   # rows 0..10 move with the head (eat bobs)
+SIT_BODY_ROWS = (11, 15)  # rows 11..15 stay put
