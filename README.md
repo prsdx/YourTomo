@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/4383d073-171e-41e7-a5ca-651fe3a2f6e9
+
 # github-pet 🐱
 
 A pixel cat that lives on your GitHub profile and reacts to your **real GitHub
