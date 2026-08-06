@@ -1,8 +1,10 @@
 # github-pet 🐱
 
-A pixel cat that lives on your GitHub profile and reacts to your **real GitHub
-activity**. Zero dependencies, no JavaScript, no hosting - a deterministic
-state machine rendered to animated SVGs by a GitHub Action in *your* repo.
+**An animated pixel cat for your GitHub profile README** that reacts to your
+**real GitHub activity**. Zero dependencies, no JavaScript, no hosting - a
+deterministic state machine rendered to animated SVGs by a **GitHub Action**
+in *your* repo: banner pet, isometric contribution graph city, language
+charts, and a mood badge, all self-updating on a schedule.
 
 <img alt="github-pet banner - the cat living its life" src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg" width="100%">
 
