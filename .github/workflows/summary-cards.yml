@@ -32,13 +32,13 @@ jobs:
           plugin_isocalendar: yes
           plugin_isocalendar_duration: half-year
 
-      - name: Keep only github_dark + default themes
-        run: find profile-summary-card-output -mindepth 1 -maxdepth 1 -type d ! -name github_dark ! -name default -exec rm -rf {} +
-
-      - name: Commit cards
+      - name: Prune extra themes and commit if needed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add profile-summary-card-output/ dist/metrics.isocalendar.svg
-          git diff --cached --quiet || git commit -m "Update profile cards + metrics [skip ci]"
+          find profile-summary-card-output -mindepth 1 -maxdepth 1 -type d ! -name github_dark ! -name default -exec rm -rf {} +
+          git add -A
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Prune extra summary-card themes [skip ci]"
+          git pull --rebase
           git push
