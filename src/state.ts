@@ -56,6 +56,16 @@ function istHour(now: Date): number {
     return Math.floor(((now.getTime() + IST_OFFSET_MIN * 60000) % 86400000) / 3600000);
 }
 
+// Time-aware banner greeting (IST, decided at generation time - SVGs cannot
+// see visitors, so the welcome is baked into the 6h regeneration cycle).
+export function greetingFor(now = new Date()): string {
+    const h = istHour(now);
+    if (h >= 5 && h < 12) return "good morning! welcome to shubham's corner";
+    if (h >= 12 && h < 17) return "good afternoon! welcome to shubham's corner";
+    if (h >= 17 && h < 22) return "good evening! welcome to shubham's corner";
+    return "up late? me too - welcome to shubham's corner";
+}
+
 export function decide(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date()): PetStatus {
     const pushTimes = pushes(events);
     const pushes24h = pushTimes.filter((t) => now.getTime() - t.getTime() <= 24 * 3600e3);

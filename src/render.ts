@@ -171,19 +171,40 @@ function sleepingCat(pal: Pal, colors: Record<string, string>): string[] {
     return parts;
 }
 
-function welcome(pal: Pal): string[] {
+function welcome(pal: Pal, greeting: string): string[] {
     const dur = INTRO_S;
     const fade = "0;0;1;1;0;0";
     const kt = "0;0.07;0.14;0.85;0.96;1";
     const out: string[] = [
         `<g opacity="0"><animate attributeName="opacity" values="${fade}" keyTimes="${kt}" dur="${dur}s" repeatCount="1" fill="freeze"/>`,
     ];
-    out.push(`<rect x="60" y="12" width="320" height="46" rx="10" fill="${pal.ground}"/>`);
+    out.push(`<rect x="60" y="12" width="380" height="46" rx="10" fill="${pal.ground}"/>`);
     out.push(`<polygon points="110,58 130,58 118,74" fill="${pal.ground}"/>`);
-    out.push(`<text x="76" y="31" font-family="monospace" font-size="13" fill="${pal.body}">hey! welcome to Shubham's corner</text>`);
+    out.push(`<text x="76" y="31" font-family="monospace" font-size="13" fill="${pal.body}">${esc(greeting)}</text>`);
     out.push(`<text x="76" y="48" font-family="monospace" font-size="12" fill="${pal.text}">scroll down for projects + contact</text>`);
-    out.push(`<polygon points="210,66 226,66 218,78" fill="${pal.accent}"><animateTransform attributeName="transform" type="translate" values="0 0;0 6;0 0" dur="0.8s" repeatCount="indefinite"/></polygon>`);
+    out.push(`<polygon points="230,66 246,66 238,78" fill="${pal.accent}"><animateTransform attributeName="transform" type="translate" values="0 0;0 6;0 0" dur="0.8s" repeatCount="indefinite"/></polygon>`);
     out.push("</g>");
+    return out;
+}
+
+// guide mode: rotating hint bubbles, top-right, one at a time on a loop.
+// (pre-baked rotation - the svg cannot see where the visitor actually is)
+function guideBubbles(pal: Pal): string[] {
+    const hints = ["featured projects ↓", "live stats + graphs ↓", "say hi: prsdx.dev@gmail.com"];
+    const dur = 18, slot = dur / hints.length;
+    const out: string[] = [];
+    hints.forEach((hint, i) => {
+        const w = hint.length * 7.6 + 22;
+        const x = WIDTH - 16 - w;
+        const t0 = (i * slot) / dur, t1 = (i * slot + slot - 1.2) / dur;
+        const kt = `0;${t0.toFixed(3)};${(t0 + 0.04).toFixed(3)};${t1.toFixed(3)};${Math.min(t1 + 0.04, 0.99).toFixed(3)};1`;
+        const vals = `0;0;1;1;0;0`;
+        out.push(`<g opacity="0"><animate attributeName="opacity" values="${vals}" keyTimes="${kt}" dur="${dur}s" begin="${INTRO_S - 2}s" repeatCount="indefinite"/>` +
+            `<rect x="${x}" y="14" width="${w}" height="30" rx="9" fill="${pal.ground}"/>` +
+            `<polygon points="${x + 26},44 ${x + 44},44 ${x + 33},54" fill="${pal.ground}"/>` +
+            `<text x="${x + 11}" y="33" font-family="monospace" font-size="12" fill="${pal.body}">${esc(hint)}</text>` +
+            `</g>`);
+    });
     return out;
 }
 
@@ -210,6 +231,10 @@ function routineCat(state: string, pal: Pal, colors: Record<string, string>): st
     cat.push(`<g><animateTransform attributeName="transform" type="translate" values="0 0;0 -3;0 0" dur="0.7s" repeatCount="indefinite"/>`);
     cat.push(...bodyGroup(pal, colors, CAT_Y, dur, [0.66, 0.78], "1.4s", INTRO_S));
     cat.push(...headGroup(state, pal, colors, CAT_Y, dur, [0.15, 0.33], INTRO_S));
+    // raised-paw wave while the cat sits at home (master-timeline windows 0-0.12, 0.82-1)
+    const wave = pixels(sprites.PAW_WAVE, pal.body, 0, CAT_Y).join("");
+    cat.push(`<g opacity="0"><animate attributeName="opacity" values="1;1;0;0;1;1" keyTimes="0;0.12;0.13;0.82;0.83;1" calcMode="discrete" dur="${dur}s" begin="${INTRO_S}s" repeatCount="indefinite"/>` +
+        `<g><animate attributeName="opacity" values="1;0;1" calcMode="discrete" dur="0.5s" repeatCount="indefinite"/>${wave}</g></g>`);
     if (state === "content") cat.push(...hearts(pal));
     if (state === "zoomies") {
         [[-46, 30], [-64, 55], [-40, 80]].forEach(([ox, oy], i) => {
@@ -226,7 +251,7 @@ function routineCat(state: string, pal: Pal, colors: Record<string, string>): st
     return cat;
 }
 
-export function buildSvg(state: string, caption: string, palette = "dark", bodyOverride?: string): string {
+export function buildSvg(state: string, caption: string, palette = "dark", greeting = "hey! welcome to shubham's corner", bodyOverride?: string): string {
     const pal: Pal = { ...PALETTES[palette] };
     PAL_CURRENT = pal;
     if (bodyOverride) pal.body = bodyOverride;
@@ -245,7 +270,8 @@ export function buildSvg(state: string, caption: string, palette = "dark", bodyO
         const intro = state === "content" || state === "zoomies";
         parts.push(...props(pal, colors, state, dur, [0.66, 0.78], intro ? INTRO_S : 0));
         parts.push(...routineCat(state, pal, colors));
-        if (intro) parts.push(...welcome(pal));
+        parts.push(...welcome(pal, greeting));
+        parts.push(...guideBubbles(pal));
     }
     const label = `state: ${state} - ${caption} · regenerated every 6h`;
     parts.push(`<text x="16" y="${HEIGHT - 10}" font-family="monospace" font-size="12" fill="${pal.text}">${esc(label)}</text>`);

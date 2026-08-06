@@ -4,9 +4,10 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { fetchEvents, fetchRepos, fetchLanguages, fetchCiStatus } from "./src/githubApi.ts";
 import { fetchCalendar, fetchActivity } from "./src/graphApi.ts";
-import { decide } from "./src/state.ts";
+import { decide, greetingFor } from "./src/state.ts";
 import { buildSvg, PALETTES } from "./src/render.ts";
 import { buildGraphSvg } from "./src/graphRender.ts";
+import { buildIsoSvg } from "./src/isoRender.ts";
 import { langsChart } from "./src/charts.ts";
 
 const USER = process.env.PET_USER || "prsdx";
@@ -23,11 +24,14 @@ async function main(): Promise<void> {
     }, ci);
 
     mkdirSync("dist", { recursive: true });
+    const greeting = greetingFor();
     const outputs: Record<string, string> = {
-        "pet.svg": buildSvg(status.state, status.caption, "dark"),
-        "pet-light.svg": buildSvg(status.state, status.caption, "light"),
+        "pet.svg": buildSvg(status.state, status.caption, "dark", greeting),
+        "pet-light.svg": buildSvg(status.state, status.caption, "light", greeting),
         "graph.svg": buildGraphSvg(status.state, status.caption, calendar, "dark"),
         "graph-light.svg": buildGraphSvg(status.state, status.caption, calendar, "light"),
+        "isocat.svg": buildIsoSvg(status.state, status.caption, calendar, "dark"),
+        "isocat-light.svg": buildIsoSvg(status.state, status.caption, calendar, "light"),
         "langs.svg": langsChart(langs, repos.length, PALETTES.dark),
         "langs-light.svg": langsChart(langs, repos.length, PALETTES.light),
     };

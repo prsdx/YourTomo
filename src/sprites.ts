@@ -100,6 +100,8 @@ export const YARN = [
 // tucked/extended paw positions for the yarn bat (in cat grid coords)
 export const PAW_TUCKED: Array<[number, number]> = [[14, 11], [15, 11], [14, 12], [15, 12]];
 export const PAW_EXTENDED: Array<[number, number]> = [[16, 12], [17, 12], [18, 12], [19, 12], [19, 11]];
+// raised-paw wave beside the right ear (shown while the cat is home)
+export const PAW_WAVE: Array<[number, number]> = [[18, 4], [19, 3], [19, 4]];
 
 // head/body split for animations (row ranges of SIT_FRONT; collar stays put)
 export const SIT_HEAD_ROWS: [number, number] = [0, 9];
