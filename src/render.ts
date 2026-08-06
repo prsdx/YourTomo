@@ -25,7 +25,7 @@ export const PALETTES: Record<string, Pal> = {
     light: { bg: "#ffffff", body: "#1f2328", accent: "#0969da", pink: "#e8590c", ground: "#d0d7de", text: "#57606a", heart: "#cf222e", lid: "#ffffff", yarn: "#8250df", collar: "#0969da", tag: "#1a7f37" },
 };
 
-const STATE_TEMPO: Record<string, number> = { zoomies: 14, content: 32 };
+const STATE_TEMPO: Record<string, number> = { zoomies: 14, content: 32, overheat: 20 };
 
 let PAL_CURRENT: Pal = PALETTES.dark;
 
@@ -216,6 +216,12 @@ function routineCat(state: string, pal: Pal, colors: Record<string, string>): st
             cat.push(`<rect x="${ox}" y="${CAT_Y + oy}" width="${6 * PX}" height="3" fill="${pal.body}" opacity="0.6"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="0.5s" begin="${i * 0.15}s" repeatCount="indefinite"/></rect>`);
         });
     }
+    if (state === "overheat") {
+        // steam puffs rising off the overheating cat (rides inside the moving group)
+        ([[40, "0s"], [56, "0.5s"], [72, "1s"]] as Array<[number, string]>).forEach(([sx, beg]) => {
+            cat.push(`<rect x="${sx}" y="${CAT_Y - 10}" width="6" height="6" rx="3" fill="${pal.ground}" opacity="0"><animate attributeName="y" values="${CAT_Y - 10};${CAT_Y - 44}" dur="1.6s" begin="${beg}" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.9;0" keyTimes="0;0.3;1" dur="1.6s" begin="${beg}" repeatCount="indefinite"/></rect>`);
+        });
+    }
     cat.push("</g></g>");
     return cat;
 }
@@ -224,6 +230,7 @@ export function buildSvg(state: string, caption: string, palette = "dark", bodyO
     const pal: Pal = { ...PALETTES[palette] };
     PAL_CURRENT = pal;
     if (bodyOverride) pal.body = bodyOverride;
+    if (state === "overheat") pal.body = "#ff7b72";
     const colors = { X: pal.body, p: pal.pink };
     const parts = [
         `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-label="github pet: ${esc(state)}">`,

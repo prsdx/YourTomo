@@ -2,7 +2,7 @@
 // Zero-dependency TypeScript - runs on Bun (CI) or Node 24+ (type stripping).
 
 import { mkdirSync, writeFileSync } from "node:fs";
-import { fetchEvents, fetchRepos, fetchLanguages } from "./src/githubApi.ts";
+import { fetchEvents, fetchRepos, fetchLanguages, fetchCiStatus } from "./src/githubApi.ts";
 import { fetchCalendar, fetchActivity } from "./src/graphApi.ts";
 import { decide } from "./src/state.ts";
 import { buildSvg, PALETTES } from "./src/render.ts";
@@ -16,10 +16,11 @@ async function main(): Promise<void> {
     const [events, repos] = await Promise.all([fetchEvents(USER), fetchRepos(USER)]);
     const langs = await fetchLanguages(USER, repos);
     const [calendar, activity] = await Promise.all([fetchCalendar(token, USER), fetchActivity(token, USER)]);
+    const ci = await fetchCiStatus(USER);
     const status = decide(events, {
         lastPush: activity?.lastPush ?? null,
         merged24h: activity?.merged24h ?? 0,
-    });
+    }, ci);
 
     mkdirSync("dist", { recursive: true });
     const outputs: Record<string, string> = {
@@ -34,7 +35,7 @@ async function main(): Promise<void> {
         writeFileSync(`dist/${name}`, svg, "utf-8");
         console.log(`wrote dist/${name} (${svg.length} bytes)`);
     }
-    console.log(`state=${status.state} | caption='${status.caption}' | apiOk=${status.apiOk}`);
+    console.log(`state=${status.state} | caption='${status.caption}' | apiOk=${status.apiOk} | ci_failed=${ci.failed}`);
     console.log(`calendar=${calendar ? calendar.total + " contributions" : "unavailable"} | lastPush=${activity?.lastPush ?? "?"} | events=${events.length} repos=${repos.length} langs=${Object.keys(langs).length}`);
 }
 

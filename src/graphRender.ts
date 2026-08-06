@@ -17,7 +17,7 @@ const PALETTES: Record<string, any> = {
     light: { bg: "#ffffff", body: "#1f2328", accent: "#0969da", pink: "#e8590c", text: "#57606a", heart: "#cf222e", lid: "#ffffff", collar: "#0969da", tag: "#1a7f37", cells: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"] },
 };
 
-const STATE_TEMPO: Record<string, number> = { zoomies: 16, content: 30, hungry: 36, grumpy: 42 };
+const STATE_TEMPO: Record<string, number> = { zoomies: 16, content: 30, hungry: 36, grumpy: 42, overheat: 12 };
 
 function esc(s: string): string {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -90,7 +90,8 @@ function kitty(state: string, pal: any, colors: Record<string, string>, xMin: nu
 }
 
 export function buildGraphSvg(state: string, caption: string, calendar: Calendar | null, palette = "dark"): string {
-    const pal = PALETTES[palette];
+    const pal = { ...PALETTES[palette] };
+    if (state === "overheat") pal.body = "#ff7b72";
     const colors = { X: pal.body, p: pal.pink };
     const parts = [
         `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-label="contribution graph cat: ${esc(state)}">`,

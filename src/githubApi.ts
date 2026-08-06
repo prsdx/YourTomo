@@ -4,6 +4,9 @@
 
 const API = "https://api.github.com";
 
+// repos whose CI the pet watches (user-owned mains)
+const WATCHED_REPOS = ["github-pet", "platewise-rag", "Parity", "blooddonation"];
+
 function token(): string | undefined {
     return process.env.GITHUB_TOKEN || process.env.PET_GITHUB_TOKEN;
 }
@@ -57,4 +60,30 @@ export async function fetchLanguages(user: string, repos: any[]): Promise<Record
         }
     }
     return totals;
+}
+
+export interface CiResult {
+    failed: boolean;
+    repo?: string;
+    runNumber?: number;
+}
+
+// Overheat input: latest Actions run on any watched repo failed within 24h.
+export async function fetchCiStatus(user: string): Promise<CiResult> {
+    const cutoff = Date.now() - 24 * 3600e3;
+    for (const repo of WATCHED_REPOS) {
+        for (const auth of [true, false]) {
+            try {
+                const data = await getJson(`/repos/${user}/${repo}/actions/runs?per_page=1`, auth);
+                const run = data?.workflow_runs?.[0];
+                if (!run) break;
+                const when = new Date(run.created_at).getTime();
+                if (run.conclusion === "failure" && !isNaN(when) && when >= cutoff) {
+                    return { failed: true, repo, runNumber: run.run_number };
+                }
+                break;
+            } catch { /* try next auth mode */ }
+        }
+    }
+    return { failed: false };
 }

@@ -1,9 +1,9 @@
 // Deterministic state machine: GitHub activity -> pet state.
-// Priority (first match wins): zoomies > sleeping > content > hungry > grumpy.
-// Every rule maps to real data from the events API / GraphQL - nothing faked.
+// Priority (first match wins): overheat > zoomies > sleeping > content > hungry > grumpy.
+// Every rule maps to real data from the events API / GraphQL / Actions runs.
 
 export interface PetStatus {
-    state: "zoomies" | "sleeping" | "content" | "hungry" | "grumpy";
+    state: "overheat" | "zoomies" | "sleeping" | "content" | "hungry" | "grumpy";
     caption: string;
     apiOk: boolean;
 }
@@ -11,6 +11,12 @@ export interface PetStatus {
 export interface Activity {
     lastPush?: Date | null;
     merged24h?: number;
+}
+
+export interface CiInfo {
+    failed?: boolean;
+    repo?: string;
+    runNumber?: number;
 }
 
 const IST_OFFSET_MIN = 330; // UTC+5:30 - user is in India
@@ -50,11 +56,18 @@ function istHour(now: Date): number {
     return Math.floor(((now.getTime() + IST_OFFSET_MIN * 60000) % 86400000) / 3600000);
 }
 
-export function decide(events: any[], activity: Activity = {}, now = new Date()): PetStatus {
+export function decide(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date()): PetStatus {
     const pushTimes = pushes(events);
     const pushes24h = pushTimes.filter((t) => now.getTime() - t.getTime() <= 24 * 3600e3);
     const merged = Math.max(mergedPrsLast24h(events, now), activity.merged24h ?? 0);
     const lastPush = pushTimes[0] ?? activity.lastPush ?? null;
+
+    // broken CI outranks a happy cat (time-boxed to 24h upstream in the fetcher)
+    if (ci.failed) {
+        const where = ci.repo ? ` on ${ci.repo}` : "";
+        const run = ci.runNumber ? ` (run #${ci.runNumber})` : "";
+        return { state: "overheat", caption: `overheat - CI failed${where}${run}`, apiOk: true };
+    }
 
     if (pushTimes.length === 0 && !lastPush && !merged) {
         return { state: "content", caption: "github api is quiet - pretending everything is fine", apiOk: false };
