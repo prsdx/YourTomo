@@ -1,7 +1,3 @@
-
-
-https://github.com/user-attachments/assets/4383d073-171e-41e7-a5ca-651fe3a2f6e9
-
 # github-pet 🐱
 
 A pixel cat that lives on your GitHub profile and reacts to your **real GitHub
@@ -10,7 +6,9 @@ state machine rendered to animated SVGs by a GitHub Action in *your* repo.
 
 <img alt="github-pet banner - the cat living its life" src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg" width="100%">
 
-![github-pet demo - the cat reacting to real GitHub activity on a live profile](docs/demo.gif)
+**See it alive** — the cat on a real profile:
+
+https://github.com/user-attachments/assets/4383d073-171e-41e7-a5ca-651fe3a2f6e9
 
 ## Quick start (5 minutes)
 

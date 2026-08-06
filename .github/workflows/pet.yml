@@ -20,7 +20,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PET_TZ_OFFSET_MINUTES: "330"
-          PET_WATCHED_REPOS: "github-pet,platewise-rag,Parity,blooddonation"
+          PET_WATCHED_REPOS: "github-pet,platewise-rag,blooddonation"
           PET_NAME: "shubham"
           PET_CONTACT: "prsdx.dev@gmail.com"
         run: bun generate.ts
