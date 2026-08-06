@@ -53,7 +53,7 @@ wait for the schedule. That's it - it keeps itself alive forever.
 
 | File | What it is |
 |---|---|
-| `pet.svg` / `pet-light.svg` | Banner scene: the cat eats, bats its yarn, sleeps in its box - greets visitors by time of day and points them around your profile |
+| `pet.svg` / `pet-light.svg` | Banner scene: the cat eats, bats its yarn, sleeps in its box - greets visitors by time of day, points them around your profile, shows what you're currently hacking on, keeps a streak campfire burning, celebrates your GitHub-iversary, and lives under a day/night sky |
 | `isocat.svg` / `isocat-light.svg` | Your full-year contributions as an **isometric city**, cat hopping along each week's busiest day |
 | `graph.svg` / `graph-light.svg` | The classic flat contribution graph with the hopping kitty |
 | `langs.svg` / `langs-light.svg` | Language share chart from real repo bytes |
@@ -74,6 +74,11 @@ Every state maps to real data (first match wins):
 If the API is unreachable the cat plays it cool instead of erroring your
 profile: flat slabs, an honest caption, everything still renders.
 
+Also real, just quieter: the **day/night sky** follows your local hour, the
+**campfire** burns while your contribution streak is ≥3 days (label shows the
+count), a **birthday cake** appears on your GitHub-iversary, and the rotating
+bubbles mention **what you last pushed to**.
+
 ## Configuration
 
 | Input | Default | What it does |
@@ -83,6 +88,7 @@ profile: flat slabs, an honest caption, everything still renders.
 | `timezone-offset-minutes` | `0` | Your UTC offset in minutes - drives sleeping + greeting |
 | `watched-repos` | *(empty)* | Comma-separated repos for the overheat state, e.g. `"api,web"` |
 | `display-name` | *(auto)* | First name in the greeting (auto-detected from your profile if empty) |
+| `pet-name` | *(empty)* | Give the cat a name - "mochi is sleeping" instead of "sleeping" |
 | `contact-line` | *(empty)* | Third guide bubble, e.g. your email. Empty skips it |
 | `output-dir` | `dist` | Where the SVGs are written |
 | `attribution` | `true` | Appends `github-pet by prsdx` to the caption strip 💙 |

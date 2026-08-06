@@ -26,6 +26,10 @@ inputs:
     description: First name used in the welcome greeting (auto-detected from your GitHub profile if empty)
     required: false
     default: ""
+  pet-name:
+    description: Give your cat a name - captions become "mochi is sleeping" instead of "sleeping"
+    required: false
+    default: ""
   contact-line:
     description: Contact shown in the rotating guide bubble, e.g. an email. Empty skips that bubble.
     required: false
@@ -53,6 +57,7 @@ runs:
         PET_TZ_OFFSET_MINUTES: ${{ inputs.timezone-offset-minutes }}
         PET_WATCHED_REPOS: ${{ inputs.watched-repos }}
         PET_NAME: ${{ inputs.display-name }}
+        PET_CAT_NAME: ${{ inputs.pet-name }}
         PET_CONTACT: ${{ inputs.contact-line }}
         PET_OUTPUT_DIR: ${{ github.workspace }}/${{ inputs.output-dir }}
         PET_ATTRIBUTION: ${{ inputs.attribution }}

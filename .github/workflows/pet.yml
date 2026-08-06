@@ -22,6 +22,7 @@ jobs:
           PET_TZ_OFFSET_MINUTES: "330"
           PET_WATCHED_REPOS: "github-pet,platewise-rag,blooddonation"
           PET_NAME: "shubham"
+          PET_CAT_NAME: ""        # the cat awaits a name
           PET_CONTACT: "prsdx.dev@gmail.com"
         run: bun generate.ts
 

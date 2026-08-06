@@ -103,6 +103,53 @@ export const PAW_EXTENDED: Array<[number, number]> = [[16, 12], [17, 12], [18, 1
 // raised-paw wave beside the right ear (shown while the cat is home)
 export const PAW_WAVE: Array<[number, number]> = [[18, 4], [19, 3], [19, 4]];
 
+// ---------------- v1.1 props ----------------
+// campfire (f = flame outer, F = flame core, w = wood log) - two flicker frames
+export const FIRE_A = [
+    "....f.....",
+    "....ff....",
+    "...fFFf...",
+    "...fFFf...",
+    "..ffffff..",
+    "..ffffff..",
+    ".wwwwwwww.",
+    "..wwwwww..",
+];
+export const FIRE_B = [
+    ".....f....",
+    "....ff....",
+    "...fFF....",
+    "..ffFFf...",
+    "..fffff...",
+    "..ffffff..",
+    ".wwwwwwww.",
+    "..wwwwww..",
+];
+
+// birthday cake (k = cake body, p = frosting, c = candle, f = flame)
+export const CAKE = [
+    ".....c......",
+    ".....c......",
+    "..pppppppp..",
+    ".kkkkkkkkkk.",
+    ".kkkkkkkkkk.",
+    "kkkkkkkkkkkk",
+    "kkkkkkkkkkkk",
+];
+export const CAKE_CANDLE: Array<[number, number]> = [[5, 0], [5, 1]];
+export const CAKE_FLAME: Array<[number, number]> = [[5, -1]];
+
+// crescent moon (m)
+export const MOON = [
+    "...mmm..",
+    "..mmmm..",
+    ".mmm....",
+    ".mmm....",
+    ".mmm....",
+    "..mmmm..",
+    "...mmm..",
+];
+
 // head/body split for animations (row ranges of SIT_FRONT; collar stays put)
 export const SIT_HEAD_ROWS: [number, number] = [0, 9];
 export const SIT_BODY_ROWS: [number, number] = [10, 15];

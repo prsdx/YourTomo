@@ -13,12 +13,12 @@ function watchedRepos(): string[] {
         .filter(Boolean);
 }
 
-// public profile (for the greeting name when PET_NAME is not set)
-export async function fetchProfile(user: string): Promise<{ name: string | null } | null> {
+// public profile (greeting name when PET_NAME is unset; created_at for the birthday cake)
+export async function fetchProfile(user: string): Promise<{ name: string | null; createdAt: string | null } | null> {
     for (const auth of [true, false]) {
         try {
             const data = await getJson(`/users/${user}`, auth);
-            if (data && data.login) return { name: data.name ?? null };
+            if (data && data.login) return { name: data.name ?? null, createdAt: data.created_at ?? null };
         } catch { /* try next */ }
     }
     return null;

@@ -72,7 +72,84 @@ export function greetingFor(now = new Date(), name = ""): string {
     return `up late? me too - ${where}`;
 }
 
-export function decide(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date()): PetStatus {
+// ---------------- v1.1 helpers: more real-data signals for the scene ----------------
+
+export function ownerHour(now = new Date()): number {
+    return localHour(now);
+}
+
+// day/night sky phase from the owner's local hour
+export function skyPhase(hour: number): "dawn" | "day" | "dusk" | "night" {
+    if (hour >= 5 && hour < 8) return "dawn";
+    if (hour >= 8 && hour < 17) return "day";
+    if (hour >= 17 && hour < 20) return "dusk";
+    return "night";
+}
+
+// consecutive contribution days ending today/yesterday (today may be incomplete)
+export function currentStreak(days: Array<{ date: string; count: number }> | null | undefined): number {
+    if (!days || days.length === 0) return 0;
+    let i = days.length - 1;
+    if (days[i].count === 0) i--; // don't break the streak over an unfinished day
+    let streak = 0;
+    while (i >= 0 && days[i].count > 0) {
+        streak++;
+        i--;
+    }
+    return streak;
+}
+
+// is today (owner-local) the account's GitHub-iversary?
+export function isBirthday(createdAt: string | null | undefined, now = new Date()): boolean {
+    if (!createdAt) return false;
+    const m = /^\d{4}-(\d{2})-(\d{2})/.exec(createdAt);
+    if (!m) return false;
+    const local = new Date(now.getTime() + TZ_OFFSET_MIN * 60000);
+    return local.getUTCMonth() + 1 === parseInt(m[1], 10) && local.getUTCDate() === parseInt(m[2], 10);
+}
+
+// most recently pushed repo (short name), for the "hacking on X" bubble
+export function lastPushedRepo(events: any[]): string | null {
+    for (const e of events) {
+        if (e?.type === "PushEvent") {
+            const full: string = e?.repo?.name ?? "";
+            const short = full.includes("/") ? full.split("/")[1] : full;
+            if (short) return short.length > 24 ? short.slice(0, 24) : short;
+        }
+    }
+    return null;
+}
+
+// prefix the caption with the cat's name, keeping the state wording natural
+function withName(catName: string, state: string, caption: string): string {
+    const prefixes: Record<string, string> = {
+        overheat: "overheat - ",
+        zoomies: "zoomies!! ",
+        sleeping: "sleeping - ",
+        content: "content - ",
+        hungry: "hungry - ",
+        grumpy: "grumpy - ",
+    };
+    const forms: Record<string, string> = {
+        overheat: "is overheating - ",
+        zoomies: "has the zoomies!! ",
+        sleeping: "is sleeping - ",
+        content: "is content - ",
+        hungry: "is hungry - ",
+        grumpy: "is grumpy - ",
+    };
+    const p = prefixes[state];
+    if (p && caption.startsWith(p)) return `${catName} ${forms[state]}${caption.slice(p.length)}`;
+    return `${catName}: ${caption}`;
+}
+
+export function decide(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date(), catName = ""): PetStatus {
+    const status = decideInner(events, activity, ci, now);
+    if (!catName) return status;
+    return { ...status, caption: withName(catName, status.state, status.caption) };
+}
+
+function decideInner(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date()): PetStatus {
     const pushTimes = pushes(events);
     const pushes24h = pushTimes.filter((t) => now.getTime() - t.getTime() <= 24 * 3600e3);
     const merged = Math.max(mergedPrsLast24h(events, now), activity.merged24h ?? 0);

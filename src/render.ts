@@ -9,20 +9,22 @@
 // (Also fixes a latent bug: the yarn ball was drawn at y=0 instead of ground level.)
 
 import * as sprites from "./sprites.ts";
+import { skyPhase } from "./state.ts";
 
 const PX = 6;
 const WIDTH = 894, HEIGHT = 190;
 const GROUND_Y = 158;
 const CAT_Y = GROUND_Y - 16 * PX;
 const HOME_X = 70, YARN_X = 430, BOWL_X = 640;
+const FIRE_X = 210, CAKE_X = 792;
 const CAT_AT_BOWL = 500, CAT_AT_YARN = 320;
 const INTRO_S = 7;
 
 type Pal = Record<string, string>;
 
 export const PALETTES: Record<string, Pal> = {
-    dark: { bg: "#0d1117", body: "#e6edf3", accent: "#58a6ff", pink: "#ff9bce", ground: "#30363d", text: "#8b949e", heart: "#ff7b72", lid: "#0d1117", yarn: "#d2a8ff", collar: "#58a6ff", tag: "#39d353" },
-    light: { bg: "#ffffff", body: "#1f2328", accent: "#0969da", pink: "#e8590c", ground: "#d0d7de", text: "#57606a", heart: "#cf222e", lid: "#ffffff", yarn: "#8250df", collar: "#0969da", tag: "#1a7f37" },
+    dark: { bg: "#0d1117", body: "#e6edf3", accent: "#58a6ff", pink: "#ff9bce", ground: "#30363d", text: "#8b949e", heart: "#ff7b72", lid: "#0d1117", yarn: "#d2a8ff", collar: "#58a6ff", tag: "#39d353", fire: "#ffa657", ember: "#ff7b72", wood: "#8b5e34", moon: "#e3b341", star: "#e6edf3" },
+    light: { bg: "#ffffff", body: "#1f2328", accent: "#0969da", pink: "#e8590c", ground: "#d0d7de", text: "#57606a", heart: "#cf222e", lid: "#ffffff", yarn: "#8250df", collar: "#0969da", tag: "#1a7f37", fire: "#e8590c", ember: "#cf222e", wood: "#9a6b3f", moon: "#b8860b", star: "#57606a" },
 };
 
 const STATE_TEMPO: Record<string, number> = { zoomies: 14, content: 32, overheat: 20 };
@@ -189,8 +191,10 @@ function welcome(pal: Pal, greeting: string): string[] {
 
 // guide mode: rotating hint bubbles, top-right, one at a time on a loop.
 // (pre-baked rotation - the svg cannot see where the visitor actually is)
-function guideBubbles(pal: Pal, contact = ""): string[] {
-    const hints = ["featured projects ↓", "live stats + graphs ↓"];
+function guideBubbles(pal: Pal, contact = "", hackingOn = ""): string[] {
+    const hints: string[] = [];
+    if (hackingOn) hints.push(`hacking on ${hackingOn}`);
+    hints.push("featured projects ↓", "live stats + graphs ↓");
     if (contact) hints.push(`say hi: ${contact}`);
     const dur = 18, slot = dur / hints.length;
     const out: string[] = [];
@@ -207,6 +211,47 @@ function guideBubbles(pal: Pal, contact = ""): string[] {
             `</g>`);
     });
     return out;
+}
+
+// day/night sky by the owner's local hour: tint overlay, stars + moon at night.
+// drawn first (behind everything); all animation pre-baked SMIL.
+function sky(pal: Pal, phase: string, dark: boolean): string[] {
+    const out: string[] = [];
+    if (phase === "dawn") out.push(`<rect width="${WIDTH}" height="${GROUND_Y}" fill="${dark ? "#f77825" : "#ffd8a8"}" opacity="${dark ? 0.10 : 0.35}"/>`);
+    if (phase === "dusk") out.push(`<rect width="${WIDTH}" height="${GROUND_Y}" fill="#f77825" opacity="${dark ? 0.10 : 0.25}"/>`);
+    if (phase === "night") {
+        out.push(`<rect width="${WIDTH}" height="${GROUND_Y}" fill="${dark ? "#02060f" : "#0d1117"}" opacity="${dark ? 0.4 : 0.12}"/>`);
+        out.push(...rects(sprites.MOON, { m: pal.moon }, 24, 16, 3));
+        // twinkling stars, kept below the speech-bubble band
+        const spots: Array<[number, number, string]> = [[120, 72, "0s"], [260, 88, "0.7s"], [400, 70, "1.3s"], [520, 86, "0.4s"], [700, 72, "1.7s"], [820, 90, "1s"]];
+        for (const [sx, sy, beg] of spots) {
+            out.push(`<rect x="${sx}" y="${sy}" width="3" height="3" fill="${pal.star}"><animate attributeName="opacity" values="1;0.2;1" dur="2.2s" begin="${beg}" repeatCount="indefinite"/></rect>`);
+        }
+    }
+    return out;
+}
+
+// streak campfire: two-frame flame flicker + a rising smoke puff.
+// shown when the owner has a 3+ day contribution streak.
+function fireProp(pal: Pal): string[] {
+    const y0 = GROUND_Y - 8 * 3;
+    const colorsA = { f: pal.ember, F: pal.fire, w: pal.wood };
+    const a = rects(sprites.FIRE_A, colorsA, FIRE_X, y0, 3).join("");
+    const b = rects(sprites.FIRE_B, colorsA, FIRE_X, y0, 3).join("");
+    return [
+        `<g><animate attributeName="opacity" values="1;0;1" keyTimes="0;0.5;1" calcMode="discrete" dur="0.7s" repeatCount="indefinite"/>${a}</g>`,
+        `<g opacity="0"><animate attributeName="opacity" values="0;1;0" keyTimes="0;0.5;1" calcMode="discrete" dur="0.7s" repeatCount="indefinite"/>${b}</g>`,
+        `<rect x="${FIRE_X + 12}" y="${y0 - 8}" width="4" height="4" rx="2" fill="${pal.ground}" opacity="0"><animate attributeName="y" values="${y0 - 8};${y0 - 40}" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.7;0" keyTimes="0;0.3;1" dur="2s" repeatCount="indefinite"/></rect>`,
+    ];
+}
+
+// github-iversary cake with a flickering candle (shown on the account's birthday)
+function cakeProp(pal: Pal): string[] {
+    const y0 = GROUND_Y - 7 * 3;
+    const parts = rects(sprites.CAKE, { k: pal.body, p: pal.pink, c: pal.accent }, CAKE_X, y0, 3);
+    const [fx, fy] = sprites.CAKE_FLAME[0];
+    parts.push(`<rect x="${CAKE_X + fx * 3 - 1}" y="${y0 + fy * 3}" width="5" height="5" fill="${pal.fire}"><animate attributeName="opacity" values="1;0.4;1" dur="0.6s" repeatCount="indefinite"/></rect>`);
+    return parts;
 }
 
 function routineCat(state: string, pal: Pal, colors: Record<string, string>): string[] {
@@ -252,18 +297,29 @@ function routineCat(state: string, pal: Pal, colors: Record<string, string>): st
     return cat;
 }
 
-export function buildSvg(state: string, caption: string, palette = "dark", greeting = "hey! welcome to my corner", contact = "", attribution = true, bodyOverride?: string): string {
+export interface SceneOpts {
+    hackingOn?: string;   // repo name for the rotating "hacking on X" bubble
+    streakDays?: number;  // >= 3 lights the campfire
+    birthday?: boolean;   // account's github-iversary: cake with candle
+    hour?: number;        // owner-local hour 0-23, drives the sky phase
+    bodyOverride?: string;
+}
+
+export function buildSvg(state: string, caption: string, palette = "dark", greeting = "hey! welcome to my corner", contact = "", attribution = true, opts: SceneOpts = {}): string {
     const pal: Pal = { ...PALETTES[palette] };
     PAL_CURRENT = pal;
-    if (bodyOverride) pal.body = bodyOverride;
+    if (opts.bodyOverride) pal.body = opts.bodyOverride;
     if (state === "overheat") pal.body = "#ff7b72";
     const colors = { X: pal.body, p: pal.pink };
     const parts = [
         `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-label="github pet: ${esc(state)}">`,
         `<title>github pet - ${esc(state)}</title>`,
         `<rect width="${WIDTH}" height="${HEIGHT}" fill="${pal.bg}"/>`,
+        ...sky(pal, skyPhase(opts.hour ?? 12), palette === "dark"),
         `<line x1="0" y1="${GROUND_Y}" x2="${WIDTH}" y2="${GROUND_Y}" stroke="${pal.ground}" stroke-width="2" stroke-dasharray="8 8"/>`,
     ];
+    if ((opts.streakDays ?? 0) >= 3) parts.push(...fireProp(pal));
+    if (opts.birthday) parts.push(...cakeProp(pal));
     if (state === "sleeping") {
         parts.push(...sleepingCat(pal, colors));
     } else {
@@ -272,9 +328,12 @@ export function buildSvg(state: string, caption: string, palette = "dark", greet
         parts.push(...props(pal, colors, state, dur, [0.66, 0.78], intro ? INTRO_S : 0));
         parts.push(...routineCat(state, pal, colors));
         parts.push(...welcome(pal, greeting));
-        parts.push(...guideBubbles(pal, contact));
+        parts.push(...guideBubbles(pal, contact, opts.hackingOn ?? ""));
     }
-    let label = `state: ${state} - ${caption} · regenerated every 6h`;
+    let label = `state: ${state} - ${caption}`;
+    if ((opts.streakDays ?? 0) >= 3) label += ` · ${opts.streakDays}-day streak`;
+    if (opts.birthday) label += " · it is my github birthday!!";
+    label += " · regenerated every 6h";
     if (attribution) label += " · github-pet by prsdx";
     parts.push(`<text x="16" y="${HEIGHT - 10}" font-family="monospace" font-size="12" fill="${pal.text}">${esc(label)}</text>`);
     parts.push("</svg>");
