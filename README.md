@@ -6,6 +6,8 @@ state machine rendered to animated SVGs by a GitHub Action in *your* repo.
 
 <img alt="github-pet banner - the cat living its life" src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg" width="100%">
 
+![github-pet demo - the cat reacting to real GitHub activity on a live profile](docs/demo.gif)
+
 ## Quick start (5 minutes)
 
 **1.** Add this workflow to your profile repo (`your-username/your-username`)
