@@ -189,8 +189,9 @@ function welcome(pal: Pal, greeting: string): string[] {
 
 // guide mode: rotating hint bubbles, top-right, one at a time on a loop.
 // (pre-baked rotation - the svg cannot see where the visitor actually is)
-function guideBubbles(pal: Pal): string[] {
-    const hints = ["featured projects ↓", "live stats + graphs ↓", "say hi: prsdx.dev@gmail.com"];
+function guideBubbles(pal: Pal, contact = ""): string[] {
+    const hints = ["featured projects ↓", "live stats + graphs ↓"];
+    if (contact) hints.push(`say hi: ${contact}`);
     const dur = 18, slot = dur / hints.length;
     const out: string[] = [];
     hints.forEach((hint, i) => {
@@ -251,7 +252,7 @@ function routineCat(state: string, pal: Pal, colors: Record<string, string>): st
     return cat;
 }
 
-export function buildSvg(state: string, caption: string, palette = "dark", greeting = "hey! welcome to shubham's corner", bodyOverride?: string): string {
+export function buildSvg(state: string, caption: string, palette = "dark", greeting = "hey! welcome to my corner", contact = "", attribution = true, bodyOverride?: string): string {
     const pal: Pal = { ...PALETTES[palette] };
     PAL_CURRENT = pal;
     if (bodyOverride) pal.body = bodyOverride;
@@ -271,9 +272,10 @@ export function buildSvg(state: string, caption: string, palette = "dark", greet
         parts.push(...props(pal, colors, state, dur, [0.66, 0.78], intro ? INTRO_S : 0));
         parts.push(...routineCat(state, pal, colors));
         parts.push(...welcome(pal, greeting));
-        parts.push(...guideBubbles(pal));
+        parts.push(...guideBubbles(pal, contact));
     }
-    const label = `state: ${state} - ${caption} · regenerated every 6h`;
+    let label = `state: ${state} - ${caption} · regenerated every 6h`;
+    if (attribution) label += " · github-pet by prsdx";
     parts.push(`<text x="16" y="${HEIGHT - 10}" font-family="monospace" font-size="12" fill="${pal.text}">${esc(label)}</text>`);
     parts.push("</svg>");
     return parts.join("\n");

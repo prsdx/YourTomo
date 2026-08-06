@@ -1,0 +1,31 @@
+name: Test generator
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths-ignore: ['dist/**', 'profile-summary-card-output/**', '**.md']
+
+permissions: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      # tokenless on purpose: exercises the fallback path external contributors hit
+      - name: Generate without token
+        run: bun generate.ts
+        env:
+          PET_USER: octocat
+          PET_OUTPUT_DIR: /tmp/pet-test
+      - name: Verify SVGs are well-formed and non-empty
+        run: |
+          for f in pet pet-light graph graph-light isocat isocat-light langs langs-light; do
+            file="/tmp/pet-test/$f.svg"
+            test -s "$file" || { echo "missing: $file"; exit 1; }
+            grep -q '<svg' "$file" || { echo "not an svg: $file"; exit 1; }
+            grep -q '</svg>' "$file" || { echo "truncated svg: $file"; exit 1; }
+          done
+          echo "all 8 SVGs OK"

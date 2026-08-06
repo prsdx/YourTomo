@@ -1,0 +1,69 @@
+name: github-pet
+description: A pixel cat that lives on your GitHub profile and reacts to your real activity - zero-dependency animated SVGs regenerated on a schedule.
+author: prsdx
+branding:
+  icon: heart
+  color: pink
+
+inputs:
+  username:
+    description: GitHub username whose activity the pet reacts to
+    required: true
+    default: ${{ github.repository_owner }}
+  token:
+    description: Token used for the contribution calendar + activity GraphQL queries (the default GITHUB_TOKEN works)
+    required: true
+    default: ${{ github.token }}
+  timezone-offset-minutes:
+    description: Your UTC offset in minutes (e.g. 330 for UTC+5:30) - drives the sleeping window and greeting
+    required: false
+    default: "0"
+  watched-repos:
+    description: Comma-separated repos whose CI the pet watches (a failed run makes the cat overheat). Empty disables.
+    required: false
+    default: ""
+  display-name:
+    description: First name used in the welcome greeting (auto-detected from your GitHub profile if empty)
+    required: false
+    default: ""
+  contact-line:
+    description: Contact shown in the rotating guide bubble, e.g. an email. Empty skips that bubble.
+    required: false
+    default: ""
+  output-dir:
+    description: Directory (relative to the repo root) the SVGs are written to
+    required: false
+    default: dist
+  attribution:
+    description: Append "github-pet by prsdx" to the SVG caption strip
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Bun
+      uses: oven-sh/setup-bun@v2
+
+    - name: Generate pet SVGs
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        PET_USER: ${{ inputs.username }}
+        PET_TZ_OFFSET_MINUTES: ${{ inputs.timezone-offset-minutes }}
+        PET_WATCHED_REPOS: ${{ inputs.watched-repos }}
+        PET_NAME: ${{ inputs.display-name }}
+        PET_CONTACT: ${{ inputs.contact-line }}
+        PET_OUTPUT_DIR: ${{ github.workspace }}/${{ inputs.output-dir }}
+        PET_ATTRIBUTION: ${{ inputs.attribution }}
+      run: bun "${{ github.action_path }}/generate.ts"
+
+    - name: Commit updated SVGs
+      shell: bash
+      run: |
+        cd "${{ github.workspace }}"
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add "${{ inputs.output-dir }}"
+        git diff --cached --quiet || git commit -m "Update pet state [skip ci]"
+        git push

@@ -4,8 +4,25 @@
 
 const API = "https://api.github.com";
 
-// repos whose CI the pet watches (user-owned mains)
-const WATCHED_REPOS = ["github-pet", "platewise-rag", "Parity", "blooddonation"];
+// repos whose CI the pet watches (user-owned mains).
+// Set PET_WATCHED_REPOS="repo1,repo2" - empty disables the overheat state.
+function watchedRepos(): string[] {
+    return (process.env.PET_WATCHED_REPOS ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
+// public profile (for the greeting name when PET_NAME is not set)
+export async function fetchProfile(user: string): Promise<{ name: string | null } | null> {
+    for (const auth of [true, false]) {
+        try {
+            const data = await getJson(`/users/${user}`, auth);
+            if (data && data.login) return { name: data.name ?? null };
+        } catch { /* try next */ }
+    }
+    return null;
+}
 
 function token(): string | undefined {
     return process.env.GITHUB_TOKEN || process.env.PET_GITHUB_TOKEN;
@@ -70,8 +87,10 @@ export interface CiResult {
 
 // Overheat input: latest Actions run on any watched repo failed within 24h.
 export async function fetchCiStatus(user: string): Promise<CiResult> {
+    const repos = watchedRepos();
+    if (repos.length === 0) return { failed: false };
     const cutoff = Date.now() - 24 * 3600e3;
-    for (const repo of WATCHED_REPOS) {
+    for (const repo of repos) {
         for (const auth of [true, false]) {
             try {
                 const data = await getJson(`/repos/${user}/${repo}/actions/runs?per_page=1`, auth);

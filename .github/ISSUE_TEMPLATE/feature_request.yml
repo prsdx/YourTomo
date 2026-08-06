@@ -1,0 +1,24 @@
+name: Feature request
+description: Ideas for new pet behavior or outputs
+title: "[idea] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What should the pet do or show? Remember rule one - it must map to REAL GitHub data (events, PRs, CI, stars...), no fake randomness.
+      placeholder: e.g. a "celebration" state when a repo hits a star milestone...
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: What real data would drive it?
+      description: Which GitHub API signal should trigger this state/visual?
+  - type: checkboxes
+    id: willing
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd be up for trying a PR for this

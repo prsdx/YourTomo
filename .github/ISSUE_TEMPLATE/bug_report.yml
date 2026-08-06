@@ -1,0 +1,32 @@
+name: Bug report
+description: The cat is misbehaving
+title: "[bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did the pet/render/action do, and what did you expect?
+      placeholder: e.g. the isocat SVG shows flat slabs and "graph data unavailable" even after the workflow ran...
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Which output / step?
+      placeholder: pet.svg / graph.svg / isocat.svg / langs.svg / the Action itself
+  - type: textarea
+    id: logs
+    attributes:
+      label: Workflow logs (if the Action failed)
+      description: Paste the failing step output from your Actions run
+      render: text
+  - type: checkboxes
+    id: token
+    attributes:
+      label: Quick checks
+      options:
+        - label: My workflow has `permissions: contents: write`
+        - label: I'm passing a token (the default `GITHUB_TOKEN` is fine)
+        - label: The workflow run itself completed green (if not, logs above)

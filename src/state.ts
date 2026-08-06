@@ -19,7 +19,12 @@ export interface CiInfo {
     runNumber?: number;
 }
 
-const IST_OFFSET_MIN = 330; // UTC+5:30 - user is in India
+// Owner's local timezone offset from UTC, in minutes (e.g. 330 = UTC+5:30).
+// Drives the sleeping window + time-aware greeting. Set PET_TZ_OFFSET_MINUTES.
+const TZ_OFFSET_MIN = (() => {
+    const n = parseInt(process.env.PET_TZ_OFFSET_MINUTES ?? "0", 10);
+    return isNaN(n) ? 0 : n;
+})();
 
 function pushes(events: any[]): Date[] {
     const out: Date[] = [];
@@ -52,18 +57,19 @@ function fmtAge(ms: number): string {
     return `${Math.floor(hours / 24)}d`;
 }
 
-function istHour(now: Date): number {
-    return Math.floor(((now.getTime() + IST_OFFSET_MIN * 60000) % 86400000) / 3600000);
+function localHour(now: Date): number {
+    return Math.floor(((now.getTime() + TZ_OFFSET_MIN * 60000) % 86400000) / 3600000);
 }
 
-// Time-aware banner greeting (IST, decided at generation time - SVGs cannot
-// see visitors, so the welcome is baked into the 6h regeneration cycle).
-export function greetingFor(now = new Date()): string {
-    const h = istHour(now);
-    if (h >= 5 && h < 12) return "good morning! welcome to shubham's corner";
-    if (h >= 12 && h < 17) return "good afternoon! welcome to shubham's corner";
-    if (h >= 17 && h < 22) return "good evening! welcome to shubham's corner";
-    return "up late? me too - welcome to shubham's corner";
+// Time-aware banner greeting (owner's local time, decided at generation time -
+// SVGs cannot see visitors, so the welcome is baked into the regen cycle).
+export function greetingFor(now = new Date(), name = ""): string {
+    const where = name ? `welcome to ${name}'s corner` : "welcome to my corner";
+    const h = localHour(now);
+    if (h >= 5 && h < 12) return `good morning! ${where}`;
+    if (h >= 12 && h < 17) return `good afternoon! ${where}`;
+    if (h >= 17 && h < 22) return `good evening! ${where}`;
+    return `up late? me too - ${where}`;
 }
 
 export function decide(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date()): PetStatus {
@@ -89,12 +95,12 @@ export function decide(events: any[], activity: Activity = {}, ci: CiInfo = {}, 
     }
 
     const lastAge = lastPush ? now.getTime() - lastPush.getTime() : null;
-    const hour = istHour(now);
+    const hour = localHour(now);
     if (hour >= 0 && hour < 6 && (lastAge === null || lastAge > 6 * 3600e3)) {
-        const ist = new Date(now.getTime() + IST_OFFSET_MIN * 60000);
-        const hh = String(ist.getUTCHours()).padStart(2, "0");
-        const mm = String(ist.getUTCMinutes()).padStart(2, "0");
-        return { state: "sleeping", caption: `sleeping - it is ${hh}:${mm} in india right now`, apiOk: true };
+        const local = new Date(now.getTime() + TZ_OFFSET_MIN * 60000);
+        const hh = String(local.getUTCHours()).padStart(2, "0");
+        const mm = String(local.getUTCMinutes()).padStart(2, "0");
+        return { state: "sleeping", caption: `sleeping - it is ${hh}:${mm} local time right now`, apiOk: true };
     }
 
     if (lastAge !== null && lastAge <= 24 * 3600e3) {
