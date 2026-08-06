@@ -13,15 +13,33 @@ function watchedRepos(): string[] {
         .filter(Boolean);
 }
 
-// public profile (greeting name when PET_NAME is unset; created_at for the birthday cake)
-export async function fetchProfile(user: string): Promise<{ name: string | null; createdAt: string | null } | null> {
+// public profile (greeting name when PET_NAME is unset; created_at for the birthday
+// cake; followers for milestone reactions via the state.json delta)
+export async function fetchProfile(user: string): Promise<{ name: string | null; createdAt: string | null; followers: number | null } | null> {
     for (const auth of [true, false]) {
         try {
             const data = await getJson(`/users/${user}`, auth);
-            if (data && data.login) return { name: data.name ?? null, createdAt: data.created_at ?? null };
+            if (data && data.login) return { name: data.name ?? null, createdAt: data.created_at ?? null, followers: data.followers ?? null };
         } catch { /* try next */ }
     }
     return null;
+}
+
+// total open issues across watched repos (drives the sick-day state)
+export async function fetchOpenIssues(user: string): Promise<number> {
+    let total = 0;
+    for (const repo of watchedRepos()) {
+        for (const auth of [true, false]) {
+            try {
+                const data = await getJson(`/repos/${user}/${repo}`, auth);
+                if (typeof data?.open_issues_count === "number") {
+                    total += data.open_issues_count; // note: includes open PRs - close enough for a cat
+                }
+                break;
+            } catch { /* try next auth mode */ }
+        }
+    }
+    return total;
 }
 
 function token(): string | undefined {
@@ -65,15 +83,23 @@ export async function fetchRepos(user: string): Promise<any[]> {
 
 export async function fetchLanguages(user: string, repos: any[]): Promise<Record<string, number>> {
     const totals: Record<string, number> = {};
-    for (const repo of repos.slice(0, 25)) {
+    const slice = repos.slice(0, 25);
+    const perRepo = async (repo: any): Promise<Record<string, number> | null> => {
         for (const auth of [true, false]) {
             try {
-                const langs = await getJson(`/repos/${user}/${repo.name}/languages`, auth);
-                for (const [lang, bytes] of Object.entries(langs)) {
-                    totals[lang] = (totals[lang] ?? 0) + (bytes as number);
-                }
-                break;
+                return await getJson(`/repos/${user}/${repo.name}/languages`, auth);
             } catch { /* try next */ }
+        }
+        return null;
+    };
+    // bounded parallelism (5 at a time) - fast but abuse-limit friendly
+    for (let i = 0; i < slice.length; i += 5) {
+        const batch = await Promise.all(slice.slice(i, i + 5).map(perRepo));
+        for (const langs of batch) {
+            if (!langs) continue;
+            for (const [lang, bytes] of Object.entries(langs)) {
+                totals[lang] = (totals[lang] ?? 0) + (bytes as number);
+            }
         }
     }
     return totals;

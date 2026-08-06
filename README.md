@@ -57,6 +57,9 @@ wait for the schedule. That's it - it keeps itself alive forever.
 | `isocat.svg` / `isocat-light.svg` | Your full-year contributions as an **isometric city**, cat hopping along each week's busiest day |
 | `graph.svg` / `graph-light.svg` | The classic flat contribution graph with the hopping kitty |
 | `langs.svg` / `langs-light.svg` | Language share chart from real repo bytes |
+| `pet-badge.svg` | shields-style mini badge (`github-pet | content`) with the current mood - for repo READMEs, not just profiles |
+
+Badge embed: `![pet](https://raw.githubusercontent.com/your-username/your-username/main/dist/pet-badge.svg)`
 
 ## The cat is honest
 
@@ -70,14 +73,21 @@ Every state maps to real data (first match wins):
 | content | pushed ≤24h | daily routine + hearts |
 | hungry | no pushes for 24–96h | camps at the empty bowl |
 | grumpy | no pushes for >96h | sulks in the cardboard box |
+| 🏆 release | you shipped a release ≤24h ago | trophy next to the cat |
+| 😷 sick | ≥10 open issues across watched repos | camps at home, thermometer |
+| 🛌 hibernating | you set `hibernate-until` | sleeps with a back-soon caption |
 
 If the API is unreachable the cat plays it cool instead of erroring your
 profile: flat slabs, an honest caption, everything still renders.
 
 Also real, just quieter: the **day/night sky** follows your local hour, the
 **campfire** burns while your contribution streak is ≥3 days (label shows the
-count), a **birthday cake** appears on your GitHub-iversary, and the rotating
-bubbles mention **what you last pushed to**.
+count), a **birthday cake** appears on your GitHub-iversary, the rotating
+bubbles mention **what you last pushed to**, the label carries a **weekly
+digest** and your **year total**, **weekends** bring shades and lemonade, a
+**pumpkin** shows up in October and **fireworks** on New Year's, streaks ≥21
+days earn a gentle **"touch grass" sign**, and crossing **star/follower
+milestones** rains confetti (via a tiny committed `state.json` memory).
 
 ## Configuration
 
@@ -89,6 +99,8 @@ bubbles mention **what you last pushed to**.
 | `watched-repos` | *(empty)* | Comma-separated repos for the overheat state, e.g. `"api,web"` |
 | `display-name` | *(auto)* | First name in the greeting (auto-detected from your profile if empty) |
 | `pet-name` | *(empty)* | Give the cat a name - "mochi is sleeping" instead of "sleeping" |
+| `hibernate-until` | *(empty)* | `YYYY-MM-DD` planned absence - cat hibernates instead of going hungry/grumpy |
+| `accent-color` | *(empty)* | `#rrggbb` brand color for the cat's accents |
 | `contact-line` | *(empty)* | Third guide bubble, e.g. your email. Empty skips it |
 | `output-dir` | `dist` | Where the SVGs are written |
 | `attribution` | `true` | Appends `github-pet by prsdx` to the caption strip 💙 |

@@ -30,6 +30,14 @@ inputs:
     description: Give your cat a name - captions become "mochi is sleeping" instead of "sleeping"
     required: false
     default: ""
+  hibernate-until:
+    description: "Planned absence date (YYYY-MM-DD): the cat hibernates instead of going hungry/grumpy"
+    required: false
+    default: ""
+  accent-color:
+    description: "Brand color for the cat's accents, hex (#rrggbb)"
+    required: false
+    default: ""
   contact-line:
     description: Contact shown in the rotating guide bubble, e.g. an email. Empty skips that bubble.
     required: false
@@ -58,6 +66,8 @@ runs:
         PET_WATCHED_REPOS: ${{ inputs.watched-repos }}
         PET_NAME: ${{ inputs.display-name }}
         PET_CAT_NAME: ${{ inputs.pet-name }}
+        PET_HIBERNATE_UNTIL: ${{ inputs.hibernate-until }}
+        PET_ACCENT: ${{ inputs.accent-color }}
         PET_CONTACT: ${{ inputs.contact-line }}
         PET_OUTPUT_DIR: ${{ github.workspace }}/${{ inputs.output-dir }}
         PET_ATTRIBUTION: ${{ inputs.attribution }}

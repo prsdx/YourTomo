@@ -3,7 +3,7 @@
 // Every rule maps to real data from the events API / GraphQL / Actions runs.
 
 export interface PetStatus {
-    state: "overheat" | "zoomies" | "sleeping" | "content" | "hungry" | "grumpy";
+    state: "overheat" | "release" | "zoomies" | "sleeping" | "hibernating" | "sick" | "content" | "hungry" | "grumpy";
     caption: string;
     apiOk: boolean;
 }
@@ -124,16 +124,22 @@ export function lastPushedRepo(events: any[]): string | null {
 function withName(catName: string, state: string, caption: string): string {
     const prefixes: Record<string, string> = {
         overheat: "overheat - ",
+        release: "release - ",
         zoomies: "zoomies!! ",
         sleeping: "sleeping - ",
+        hibernating: "hibernating - ",
+        sick: "sick - ",
         content: "content - ",
         hungry: "hungry - ",
         grumpy: "grumpy - ",
     };
     const forms: Record<string, string> = {
         overheat: "is overheating - ",
+        release: "shipped a release!! ",
         zoomies: "has the zoomies!! ",
         sleeping: "is sleeping - ",
+        hibernating: "is hibernating - ",
+        sick: "is sick - ",
         content: "is content - ",
         hungry: "is hungry - ",
         grumpy: "is grumpy - ",
@@ -143,13 +149,54 @@ function withName(catName: string, state: string, caption: string): string {
     return `${catName}: ${caption}`;
 }
 
-export function decide(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date(), catName = ""): PetStatus {
-    const status = decideInner(events, activity, ci, now);
+// ---------------- v1.2 helpers ----------------
+
+// smallest milestone crossed between two observations (star/follower deltas)
+export function milestone(prev: number | undefined, curr: number, steps = [10, 25, 50, 100, 250, 500, 1000]): number | null {
+    if (prev === undefined) return null; // first run: record, don't celebrate
+    for (const s of steps) if (prev < s && curr >= s) return s;
+    return null;
+}
+
+export function isWeekend(now = new Date()): boolean {
+    const local = new Date(now.getTime() + TZ_OFFSET_MIN * 60000);
+    const d = local.getUTCDay();
+    return d === 0 || d === 6;
+}
+
+// seasonal prop by owner-local date
+export function season(now = new Date()): "pumpkin" | "nye" | "" {
+    const local = new Date(now.getTime() + TZ_OFFSET_MIN * 60000);
+    const m = local.getUTCMonth() + 1, d = local.getUTCDate();
+    if (m === 10) return "pumpkin";          // hacktober
+    if ((m === 12 && d === 31) || (m === 1 && d === 1)) return "nye";
+    return "";
+}
+
+// pushes + merged PRs over the last 7 days, for the digest label
+export function weeklyDigest(events: any[], now = new Date()): { pushes: number; merged: number } {
+    let pushes = 0, merged = 0;
+    for (const e of events) {
+        const t = new Date(e?.created_at ?? 0);
+        if (isNaN(t.getTime()) || now.getTime() - t.getTime() > 7 * 24 * 3600e3) continue;
+        if (e.type === "PushEvent") pushes++;
+        if (e.type === "PullRequestEvent" && e?.payload?.action === "closed" && e?.payload?.pull_request?.merged) merged++;
+    }
+    return { pushes, merged };
+}
+
+export interface ExtraSignals {
+    openIssues?: number;      // total open issues across watched repos (sick day)
+    hibernateUntil?: string;  // YYYY-MM-DD - planned absence; overrides hungry/grumpy
+}
+
+export function decide(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date(), catName = "", extra: ExtraSignals = {}): PetStatus {
+    const status = decideInner(events, activity, ci, now, extra);
     if (!catName) return status;
     return { ...status, caption: withName(catName, status.state, status.caption) };
 }
 
-function decideInner(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date()): PetStatus {
+function decideInner(events: any[], activity: Activity = {}, ci: CiInfo = {}, now = new Date(), extra: ExtraSignals = {}): PetStatus {
     const pushTimes = pushes(events);
     const pushes24h = pushTimes.filter((t) => now.getTime() - t.getTime() <= 24 * 3600e3);
     const merged = Math.max(mergedPrsLast24h(events, now), activity.merged24h ?? 0);
@@ -160,6 +207,18 @@ function decideInner(events: any[], activity: Activity = {}, ci: CiInfo = {}, no
         const where = ci.repo ? ` on ${ci.repo}` : "";
         const run = ci.runNumber ? ` (run #${ci.runNumber})` : "";
         return { state: "overheat", caption: `overheat - CI failed${where}${run}`, apiOk: true };
+    }
+
+    // a fresh release outranks everything except broken CI (checked before the
+    // quiet-api fallback: a release-only feed must still celebrate)
+    for (const e of events) {
+        if (e?.type !== "ReleaseEvent") continue;
+        const t = new Date(e.created_at);
+        if (!isNaN(t.getTime()) && now.getTime() - t.getTime() <= 24 * 3600e3) {
+            const tag = e?.payload?.release?.tag_name ?? "new release";
+            const repo = (e?.repo?.name ?? "").split("/")[1] ?? "";
+            return { state: "release", caption: `release - shipped ${tag}${repo ? ` on ${repo}` : ""}`, apiOk: true };
+        }
     }
 
     if (pushTimes.length === 0 && !lastPush && !merged) {
@@ -178,6 +237,20 @@ function decideInner(events: any[], activity: Activity = {}, ci: CiInfo = {}, no
         const hh = String(local.getUTCHours()).padStart(2, "0");
         const mm = String(local.getUTCMinutes()).padStart(2, "0");
         return { state: "sleeping", caption: `sleeping - it is ${hh}:${mm} local time right now`, apiOk: true };
+    }
+
+    // planned absence: never punish it with hungry/grumpy
+    if (extra.hibernateUntil && /^\d{4}-\d{2}-\d{2}$/.test(extra.hibernateUntil)) {
+        const until = new Date(extra.hibernateUntil + "T00:00:00Z");
+        const localToday = new Date(now.getTime() + TZ_OFFSET_MIN * 60000);
+        if (!isNaN(until.getTime()) && until.getTime() >= Date.UTC(localToday.getUTCFullYear(), localToday.getUTCMonth(), localToday.getUTCDate())) {
+            return { state: "hibernating", caption: `hibernating - until ${extra.hibernateUntil}, back soon`, apiOk: true };
+        }
+    }
+
+    // issue surge across watched repos
+    if ((extra.openIssues ?? 0) >= 10) {
+        return { state: "sick", caption: `sick - ${extra.openIssues} open issues across watched repos`, apiOk: true };
     }
 
     if (lastAge !== null && lastAge <= 24 * 3600e3) {

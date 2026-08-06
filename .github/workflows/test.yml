@@ -22,7 +22,7 @@ jobs:
           PET_OUTPUT_DIR: /tmp/pet-test
       - name: Verify SVGs are well-formed and non-empty
         run: |
-          for f in pet pet-light graph graph-light isocat isocat-light langs langs-light; do
+          for f in pet pet-light graph graph-light isocat isocat-light langs langs-light pet-badge; do
             file="/tmp/pet-test/$f.svg"
             test -s "$file" || { echo "missing: $file"; exit 1; }
             grep -q '<svg' "$file" || { echo "not an svg: $file"; exit 1; }

@@ -23,11 +23,11 @@ const INTRO_S = 7;
 type Pal = Record<string, string>;
 
 export const PALETTES: Record<string, Pal> = {
-    dark: { bg: "#0d1117", body: "#e6edf3", accent: "#58a6ff", pink: "#ff9bce", ground: "#30363d", text: "#8b949e", heart: "#ff7b72", lid: "#0d1117", yarn: "#d2a8ff", collar: "#58a6ff", tag: "#39d353", fire: "#ffa657", ember: "#ff7b72", wood: "#8b5e34", moon: "#e3b341", star: "#e6edf3" },
-    light: { bg: "#ffffff", body: "#1f2328", accent: "#0969da", pink: "#e8590c", ground: "#d0d7de", text: "#57606a", heart: "#cf222e", lid: "#ffffff", yarn: "#8250df", collar: "#0969da", tag: "#1a7f37", fire: "#e8590c", ember: "#cf222e", wood: "#9a6b3f", moon: "#b8860b", star: "#57606a" },
+    dark: { bg: "#0d1117", body: "#e6edf3", accent: "#58a6ff", pink: "#ff9bce", ground: "#30363d", text: "#8b949e", heart: "#ff7b72", lid: "#0d1117", yarn: "#d2a8ff", collar: "#58a6ff", tag: "#39d353", fire: "#ffa657", ember: "#ff7b72", wood: "#8b5e34", moon: "#e3b341", star: "#e6edf3", gold: "#e3b341", pumpkin: "#f0823d", lemon: "#ffd33d", shades: "#24292f" },
+    light: { bg: "#ffffff", body: "#1f2328", accent: "#0969da", pink: "#e8590c", ground: "#d0d7de", text: "#57606a", heart: "#cf222e", lid: "#ffffff", yarn: "#8250df", collar: "#0969da", tag: "#1a7f37", fire: "#e8590c", ember: "#cf222e", wood: "#9a6b3f", moon: "#b8860b", star: "#57606a", gold: "#bf8700", pumpkin: "#d97706", lemon: "#e3b341", shades: "#24292f" },
 };
 
-const STATE_TEMPO: Record<string, number> = { zoomies: 14, content: 32, overheat: 20 };
+const STATE_TEMPO: Record<string, number> = { zoomies: 14, content: 32, overheat: 20, release: 20, sick: 44 };
 
 let PAL_CURRENT: Pal = PALETTES.dark;
 
@@ -163,13 +163,16 @@ function zzz(pal: Pal): string[] {
     return out;
 }
 
-function sleepingCat(pal: Pal, colors: Record<string, string>): string[] {
+function sleepingCat(pal: Pal, colors: Record<string, string>, topLang = ""): string[] {
     const y0 = GROUND_Y - 14 * PX;
     const parts = rects(sprites.CURL_BODY, colors, 90, y0);
     for (const [ex, ey] of sprites.CURL_LIDS) {
         parts.push(`<rect x="${90 + ex * PX}" y="${y0 + ey * PX}" width="${PX}" height="${PX}" fill="${pal.lid}"/>`);
     }
     parts.push(...zzz(pal));
+    if (topLang) {
+        parts.push(`<text x="215" y="52" font-family="monospace" font-style="italic" font-size="12" fill="${pal.text}">dreaming in ${esc(topLang)}</text>`);
+    }
     return parts;
 }
 
@@ -254,8 +257,53 @@ function cakeProp(pal: Pal): string[] {
     return parts;
 }
 
-function routineCat(state: string, pal: Pal, colors: Record<string, string>): string[] {
+// v1.2: star/follower milestone confetti - colored pixels drifting from the top
+function confettiProp(pal: Pal): string[] {
+    const cols = [pal.accent, pal.pink, pal.heart, pal.tag, pal.yarn, pal.gold];
+    const out: string[] = [];
+    for (let i = 0; i < 10; i++) {
+        const x = 60 + i * 82, beg = (i * 0.35).toFixed(2) + "s", col = cols[i % cols.length];
+        out.push(`<rect x="${x}" y="-6" width="5" height="5" fill="${col}" opacity="0"><animate attributeName="y" values="-6;${GROUND_Y - 10}" dur="3.2s" begin="${beg}" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.8;1" dur="3.2s" begin="${beg}" repeatCount="indefinite"/></rect>`);
+    }
+    return out;
+}
+
+// v1.2: nye fireworks - three expanding/fading bursts in the sky band
+function fireworksProp(pal: Pal): string[] {
+    const bursts: Array<[number, number, string, string]> = [[180, 40, pal.heart, "0s"], [450, 30, pal.accent, "1.1s"], [720, 45, pal.gold, "2.2s"]];
+    const out: string[] = [];
+    for (const [bx, by, col, beg] of bursts) {
+        const dots: string[] = [];
+        const dirs: Array<[number, number]> = [[14, 0], [-14, 0], [0, 14], [0, -14], [10, 10], [-10, -10], [10, -10], [-10, 10]];
+        for (const [dx, dy] of dirs) {
+            dots.push(`<rect x="${bx}" y="${by}" width="3" height="3" fill="${col}"><animateTransform attributeName="transform" type="translate" values="0 0;${dx} ${dy}" dur="1.6s" begin="${beg}" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" keyTimes="0;0.25;1" dur="1.6s" begin="${beg}" repeatCount="indefinite"/></rect>`);
+        }
+        out.push(...dots);
+    }
+    return out;
+}
+
+// v1.2: touch-grass sign for extreme streaks (21+ days)
+function signProp(pal: Pal): string[] {
+    const x = 290, y = GROUND_Y - 26;
+    return [
+        `<rect x="${x + 18}" y="${y + 12}" width="4" height="22" fill="${pal.wood}"/>`,
+        `<rect x="${x}" y="${y}" width="86" height="16" rx="3" fill="${pal.ground}"/>`,
+        `<text x="${x + 43}" y="${y + 11}" font-family="monospace" font-size="9" fill="${pal.body}" text-anchor="middle">touch grass</text>`,
+    ];
+}
+
+function routineCat(state: string, pal: Pal, colors: Record<string, string>, weekendShades = false): string[] {
     const dur = STATE_TEMPO[state] ?? 32;
+    if (state === "sick") {
+        // camps at home with a thermometer - no routine today
+        const cat = [`<g transform="translate(${HOME_X},0)">`];
+        cat.push(...bodyGroup(pal, colors, CAT_Y, dur, undefined, "2.8s"));
+        cat.push(...headGroup(state, pal, colors, CAT_Y, dur));
+        cat.push("</g>");
+        cat.push(...rects(sprites.THERMOMETER, { w: pal.body, r: pal.heart }, HOME_X + 108, GROUND_Y - 7 * 3, 3));
+        return cat;
+    }
     if (state === "hungry") {
         const cat = [`<g transform="translate(${CAT_AT_BOWL},0)">`];
         cat.push(...bodyGroup(pal, colors, CAT_Y, dur));
@@ -281,6 +329,7 @@ function routineCat(state: string, pal: Pal, colors: Record<string, string>): st
     const wave = pixels(sprites.PAW_WAVE, pal.body, 0, CAT_Y).join("");
     cat.push(`<g opacity="0"><animate attributeName="opacity" values="1;1;0;0;1;1" keyTimes="0;0.12;0.13;0.82;0.83;1" calcMode="discrete" dur="${dur}s" begin="${INTRO_S}s" repeatCount="indefinite"/>` +
         `<g><animate attributeName="opacity" values="1;0;1" calcMode="discrete" dur="0.5s" repeatCount="indefinite"/>${wave}</g></g>`);
+    if (weekendShades) cat.push(...pixels(sprites.SHADES, pal.shades, 0, CAT_Y));
     if (state === "content") cat.push(...hearts(pal));
     if (state === "zoomies") {
         [[-46, 30], [-64, 55], [-40, 80]].forEach(([ox, oy], i) => {
@@ -294,6 +343,7 @@ function routineCat(state: string, pal: Pal, colors: Record<string, string>): st
         });
     }
     cat.push("</g></g>");
+    if (state === "release") cat.push(...rects(sprites.TROPHY, { y: pal.gold }, 740, GROUND_Y - 8 * 3, 3));
     return cat;
 }
 
@@ -303,12 +353,23 @@ export interface SceneOpts {
     birthday?: boolean;   // account's github-iversary: cake with candle
     hour?: number;        // owner-local hour 0-23, drives the sky phase
     bodyOverride?: string;
+    accent?: string;      // "#rrggbb" brand color override (accent + collar)
+    weekend?: boolean;    // owner-local Sat/Sun: shades + lemonade for happy states
+    topLang?: string;     // sleeping cat dreams in this language
+    seasonal?: string;    // "pumpkin" | "nye" | ""
+    touchGrass?: boolean; // streak >= 21: the sign appears
+    confetti?: boolean;   // star/follower milestone this run
+    labelExtra?: string[]; // extra " · "-joined caption-strip segments
 }
 
 export function buildSvg(state: string, caption: string, palette = "dark", greeting = "hey! welcome to my corner", contact = "", attribution = true, opts: SceneOpts = {}): string {
     const pal: Pal = { ...PALETTES[palette] };
     PAL_CURRENT = pal;
     if (opts.bodyOverride) pal.body = opts.bodyOverride;
+    if (opts.accent && /^#[0-9a-f]{6}$/i.test(opts.accent)) {
+        pal.accent = opts.accent;
+        pal.collar = opts.accent;
+    }
     if (state === "overheat") pal.body = "#ff7b72";
     const colors = { X: pal.body, p: pal.pink };
     const parts = [
@@ -319,20 +380,29 @@ export function buildSvg(state: string, caption: string, palette = "dark", greet
         `<line x1="0" y1="${GROUND_Y}" x2="${WIDTH}" y2="${GROUND_Y}" stroke="${pal.ground}" stroke-width="2" stroke-dasharray="8 8"/>`,
     ];
     if ((opts.streakDays ?? 0) >= 3) parts.push(...fireProp(pal));
+    if (opts.touchGrass) parts.push(...signProp(pal));
     if (opts.birthday) parts.push(...cakeProp(pal));
-    if (state === "sleeping") {
-        parts.push(...sleepingCat(pal, colors));
+    if (opts.seasonal === "pumpkin") parts.push(...rects(sprites.PUMPKIN, { o: pal.pumpkin, g: pal.tag }, 150, GROUND_Y - 7 * 3, 3));
+    if (opts.seasonal === "nye") parts.push(...fireworksProp(pal));
+    const shadesOn = !!opts.weekend && ["content", "zoomies", "release"].includes(state);
+    if (opts.weekend && state !== "sleeping" && state !== "hibernating") {
+        parts.push(...rects(sprites.LEMONADE, { y: pal.lemon, s: pal.pink }, BOWL_X + 110, GROUND_Y - 6 * 3, 3));
+    }
+    if (state === "sleeping" || state === "hibernating") {
+        parts.push(...sleepingCat(pal, colors, opts.topLang ?? ""));
     } else {
         const dur = STATE_TEMPO[state] ?? 32;
-        const intro = state === "content" || state === "zoomies";
+        const intro = state === "content" || state === "zoomies" || state === "release";
         parts.push(...props(pal, colors, state, dur, [0.66, 0.78], intro ? INTRO_S : 0));
-        parts.push(...routineCat(state, pal, colors));
+        parts.push(...routineCat(state, pal, colors, shadesOn));
         parts.push(...welcome(pal, greeting));
         parts.push(...guideBubbles(pal, contact, opts.hackingOn ?? ""));
     }
+    if (opts.confetti) parts.push(...confettiProp(pal));
     let label = `state: ${state} - ${caption}`;
     if ((opts.streakDays ?? 0) >= 3) label += ` · ${opts.streakDays}-day streak`;
     if (opts.birthday) label += " · it is my github birthday!!";
+    if (opts.labelExtra && opts.labelExtra.length) label += ` · ${opts.labelExtra.join(" · ")}`;
     label += " · regenerated every 6h";
     if (attribution) label += " · github-pet by prsdx";
     parts.push(`<text x="16" y="${HEIGHT - 10}" font-family="monospace" font-size="12" fill="${pal.text}">${esc(label)}</text>`);

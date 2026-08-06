@@ -150,6 +150,58 @@ export const MOON = [
     "...mmm..",
 ];
 
+// ---------------- v1.2 props ----------------
+// release trophy (y = gold)
+export const TROPHY = [
+    "..yyyy..",
+    ".yyyyyy.",
+    ".yyyyyy.",
+    "..yyyy..",
+    "...yy...",
+    "...yy...",
+    "..yyyy..",
+    ".yyyyyy.",
+];
+
+// sick-day thermometer (w = tube, r = mercury)
+export const THERMOMETER = [
+    "..w..",
+    ".w.w.",
+    ".wrw.",
+    ".wrw.",
+    ".wrw.",
+    ".rrr.",
+    ".rrr.",
+];
+
+// october pumpkin (o = body, g = stem)
+export const PUMPKIN = [
+    "....g.....",
+    "..ooooo...",
+    ".ooooooo..",
+    "oooooooooo",
+    "oooooooooo",
+    ".ooooooo..",
+    "..ooooo...",
+];
+
+// weekend lemonade (y = drink, s = straw)
+export const LEMONADE = [
+    "s....",
+    ".s...",
+    "yyyy.",
+    "yyyy.",
+    "yyyy.",
+    ".yyy.",
+];
+
+// weekend shades: overlay on the sitting cat grid (rows 4-5, over the eyes)
+export const SHADES: Array<[number, number]> = [
+    [4, 4], [5, 4], [6, 4], [4, 5], [5, 5], [6, 5],
+    [7, 4], [8, 4], [9, 4], [10, 4], [11, 4], [12, 4],
+    [13, 4], [14, 4], [15, 4], [13, 5], [14, 5], [15, 5],
+];
+
 // head/body split for animations (row ranges of SIT_FRONT; collar stays put)
 export const SIT_HEAD_ROWS: [number, number] = [0, 9];
 export const SIT_BODY_ROWS: [number, number] = [10, 15];
