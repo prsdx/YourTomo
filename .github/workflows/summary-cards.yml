@@ -22,6 +22,9 @@ jobs:
           USERNAME: prsdx
           UTC_OFFSET: 5.5
 
+      - name: Keep only github_dark + default themes
+        run: find profile-summary-card-output -mindepth 1 -maxdepth 1 -type d ! -name github_dark ! -name default -exec rm -rf {} +
+
       - name: Commit cards
         run: |
           git config user.name "github-actions[bot]"
