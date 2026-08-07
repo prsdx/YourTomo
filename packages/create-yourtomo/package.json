@@ -2,13 +2,24 @@
   "name": "create-yourtomo",
   "version": "1.0.0",
   "description": "Setup wizard for YourTomo - the pixel cat that lives on your GitHub profile and reacts to your real activity",
-  "keywords": ["github", "github-profile", "readme", "svg", "pixel-cat", "pet", "yourtomo", "create"],
+  "keywords": [
+    "github",
+    "github-profile",
+    "readme",
+    "svg",
+    "pixel-cat",
+    "pet",
+    "yourtomo",
+    "create"
+  ],
   "license": "MIT",
   "type": "module",
   "bin": {
-    "create-yourtomo": "./index.js"
+    "create-yourtomo": "cli.js"
   },
-  "files": ["index.js"],
+  "files": [
+    "cli.js"
+  ],
   "engines": {
     "node": ">=18"
   },

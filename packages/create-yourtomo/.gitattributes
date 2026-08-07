@@ -1,3 +1,3 @@
 # The wizard is published to npm, which requires the bin script's shebang to
 # end in LF (CRLF makes npm drop the bin entry). Force LF on checkout/pack.
-index.js text eol=lf
+cli.js text eol=lf
