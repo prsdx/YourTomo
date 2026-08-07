@@ -1,5 +1,5 @@
-name: github-pet
-description: A pixel cat that lives on your GitHub profile and reacts to your real activity - zero-dependency animated SVGs regenerated on a schedule.
+name: Commit Cat
+description: A pixel cat for your GitHub profile that reacts to your real activity, rendered as animated SVGs on a schedule.
 author: prsdx
 branding:
   icon: heart
