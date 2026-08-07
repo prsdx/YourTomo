@@ -6,9 +6,9 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "create-yourtomo": "./index.mjs"
+    "create-yourtomo": "./index.js"
   },
-  "files": ["index.mjs"],
+  "files": ["index.js"],
   "engines": {
     "node": ">=18"
   },

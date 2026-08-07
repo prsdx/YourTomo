@@ -38,4 +38,3 @@ Zero dependencies (Node 18+ stdlib only), in the spirit of the main project.
 ```bash
 cd packages/create-yourtomo
 npm publish --access public
-```
