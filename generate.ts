@@ -5,7 +5,7 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { fetchEvents, fetchRepos, fetchLanguages, fetchCiStatus, fetchProfile, fetchOpenIssues } from "./src/githubApi.ts";
 import { fetchCalendar, fetchActivity } from "./src/graphApi.ts";
-import { decide, greetingFor, ownerHour, currentStreak, isBirthday, lastPushedRepo, milestone, isWeekend, season, weeklyDigest } from "./src/state.ts";
+import { decide, applyForceState, greetingFor, ownerHour, currentStreak, isBirthday, lastPushedRepo, milestone, isWeekend, season, weeklyDigest } from "./src/state.ts";
 import { buildSvg, PALETTES } from "./src/render.ts";
 import { buildGraphSvg } from "./src/graphRender.ts";
 import { buildIsoSvg } from "./src/isoRender.ts";
@@ -26,13 +26,16 @@ async function main(): Promise<void> {
     const openIssues = await fetchOpenIssues(USER);
     const catName = process.env.PET_CAT_NAME || "";
     const now = new Date();
-    const status = decide(events, {
+    let status = decide(events, {
         lastPush: activity?.lastPush ?? null,
         merged24h: activity?.merged24h ?? 0,
     }, ci, now, catName, {
         openIssues,
         hibernateUntil: process.env.PET_HIBERNATE_UNTIL || "",
     });
+    // preview-only override: PET_FORCE_STATE forces any state for
+    // screenshots/testing (validation list shared with the preview worker)
+    status = applyForceState(status, process.env.PET_FORCE_STATE || "");
 
     // state.json delta memory: enables milestone reactions (stars/followers).
     // read the previous run's snapshot (committed by the workflow), compare, rewrite.

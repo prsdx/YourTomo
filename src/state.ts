@@ -7,6 +7,20 @@ export interface PetStatus {
     caption: string;
     apiOk: boolean;
 }
+// Every state the machine can produce. Shared by generate.ts (PET_FORCE_STATE
+// input) and the preview worker (?state= param) so both validate against one list.
+export const VALID_STATES = ["overheat", "release", "zoomies", "sleeping", "hibernating", "sick", "content", "hungry", "grumpy"] as const;
+
+// force-state override: force any state for screenshots/testing without waiting
+// on real activity. Empty or unrecognized input returns the status untouched,
+// so default behavior is byte-identical to not having the feature at all.
+export function applyForceState(status: PetStatus, force: string): PetStatus {
+    const f = (force || "").trim();
+    if (!f || !(VALID_STATES as readonly string[]).includes(f)) return status;
+    return { ...status, state: f as PetStatus["state"], caption: `${f} - preview mode (forced)` };
+}
+
+
 
 export interface Activity {
     lastPush?: Date | null;

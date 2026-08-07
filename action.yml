@@ -50,6 +50,10 @@ inputs:
     description: Append "github-pet by prsdx" to the SVG caption strip
     required: false
     default: "true"
+  force-state:
+    description: "Preview only: force a specific state (overheat, release, zoomies, sleeping, hibernating, sick, content, hungry, grumpy) instead of deciding from real data. Leave empty for normal behavior."
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -71,6 +75,7 @@ runs:
         PET_CONTACT: ${{ inputs.contact-line }}
         PET_OUTPUT_DIR: ${{ github.workspace }}/${{ inputs.output-dir }}
         PET_ATTRIBUTION: ${{ inputs.attribution }}
+        PET_FORCE_STATE: ${{ inputs.force-state }}
       run: bun "${{ github.action_path }}/generate.ts"
 
     - name: Commit updated SVGs
