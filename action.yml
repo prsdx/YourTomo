@@ -3,7 +3,7 @@ description: A pixel cat that lives on your GitHub profile and reacts to your re
 author: prsdx
 branding:
   icon: heart
-  color: pink
+  color: red
 
 inputs:
   username:
