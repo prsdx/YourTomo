@@ -34,13 +34,13 @@ async function post(query: string, token: string): Promise<any | null> {
         body: JSON.stringify({ query }),
     });
     if (!resp.ok) {
-        const body = await resp.text().catch(() => "(unreadable)");
-        console.error(`GraphQL ${resp.status}: ${body.slice(0, 300)}`);
+        console.error(`GraphQL ${resp.status}`);
         return null;
     }
     const payload: any = await resp.json();
+    // errors are non-fatal — GitHub sometimes returns data alongside them
     if (payload?.errors) {
-        console.error("GraphQL errors:", JSON.stringify(payload.errors).slice(0, 500));
+        console.error(`GraphQL errors (count: ${payload.errors.length})`);
     }
     return payload?.data ?? null;
 }
