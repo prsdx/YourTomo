@@ -72,7 +72,7 @@ export default {
 
         let svg: string;
         try {
-            svg = await renderPreview(username, force, theme, svgType);
+            svg = await renderPreview(username, force, theme, svgType, env.GITHUB_TOKEN);
         } catch (err) {
             return new Response(`render failed: ${String(err)}\n`, { status: 500 });
         }
@@ -94,16 +94,20 @@ export default {
 // stay off), no CI/issue watchers (those need the owner's watched-repos
 // config), and the langs chart does extra API calls here (25 repo-fetches)
 // so it really benefits from the 5-minute edge cache + an optional token.
-async function renderPreview(username: string, force: string, theme: "dark" | "light", svgType: SvgType): Promise<string> {
-    const token = process.env.GITHUB_TOKEN || process.env.PET_GITHUB_TOKEN;
+async function renderPreview(username: string, force: string, theme: "dark" | "light", svgType: SvgType, workerToken?: string): Promise<string> {
+    const token = workerToken || process.env.GITHUB_TOKEN || process.env.PET_GITHUB_TOKEN;
+    let calendarDiag = "";
     const now = new Date();
     const [events, profile] = await Promise.all([fetchEvents(username), fetchProfile(username)]);
 
-    // calendar/activity needed for pet/isocat/graph state + captions; langs
-    // only needs event data for the state label (no scene, no graph)
     let calendar = null, activity = null;
     if (svgType !== "langs") {
         [calendar, activity] = await Promise.all([fetchCalendar(token, username), fetchActivity(token, username)]);
+        if (!token) {
+            calendarDiag = "no GITHUB_TOKEN configured on worker";
+        } else if (!calendar) {
+            calendarDiag = "GraphQL failed (check token has read:user or Metadata read scope)";
+        }
     }
 
     let status = decide(events, {
@@ -113,10 +117,16 @@ async function renderPreview(username: string, force: string, theme: "dark" | "l
     status = applyForceState(status, force);
 
     switch (svgType) {
-        case "isocat":
-            return buildIsoSvg(status.state, status.caption, calendar, theme, true);
-        case "graph":
-            return buildGraphSvg(status.state, status.caption, calendar, theme, true);
+        case "isocat": {
+            let svg = buildIsoSvg(status.state, status.caption, calendar, theme, true);
+            if (calendarDiag) svg = svg.replace("</svg>", `<!-- ${calendarDiag} --></svg>`);
+            return svg;
+        }
+        case "graph": {
+            let svg = buildGraphSvg(status.state, status.caption, calendar, theme, true);
+            if (calendarDiag) svg = svg.replace("</svg>", `<!-- ${calendarDiag} --></svg>`);
+            return svg;
+        }
         case "langs": {
             const repos = await fetchRepos(username);
             const langs = await fetchLanguages(username, repos);

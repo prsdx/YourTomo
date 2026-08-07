@@ -26,10 +26,6 @@ state machine, rendered to animated SVG by a GitHub Action that lives in
 anything → **[prsdx.yourtomo.workers.dev](https://prsdx.yourtomo.workers.dev)**
 (read-only, nothing is stored).
 
-**Zero-config install:** `npx create-yourtomo` asks a few questions (username,
-IANA timezone — no UTC-offset math) and writes the workflow below for you,
-plus your README embed snippet. Prefer the manual route? It's one file:
-
 **1.** Add this workflow to your profile repo (`your-username/your-username`)
 as `.github/workflows/pet.yml`:
 

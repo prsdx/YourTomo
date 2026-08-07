@@ -33,29 +33,38 @@ async function post(query: string, token: string): Promise<any | null> {
         headers: { Authorization: `bearer ${token}`, "User-Agent": "github-pet" },
         body: JSON.stringify({ query }),
     });
-    if (!resp.ok) return null;
-    const payload = await resp.json();
+    if (!resp.ok) {
+        const body = await resp.text().catch(() => "(unreadable)");
+        console.error(`GraphQL ${resp.status}: ${body.slice(0, 300)}`);
+        return null;
+    }
+    const payload: any = await resp.json();
+    if (payload?.errors) {
+        console.error("GraphQL errors:", JSON.stringify(payload.errors).slice(0, 500));
+    }
     return payload?.data ?? null;
 }
 
 export async function fetchCalendar(token: string | undefined, user = "prsdx"): Promise<Calendar | null> {
-    if (!token) return null;
+    if (!token) { console.error("fetchCalendar: no token provided"); return null; }
     try {
         const data = await post(CALENDAR_QUERY(user), token);
+        if (!data) throw new Error("GraphQL returned no data (check token scopes: needs read:user or Metadata read)");
         const cal = data.user.contributionsCollection.contributionCalendar;
         const days: CalendarDay[] = [];
         for (const week of cal.weeks) {
             for (const d of week.contributionDays) days.push({ date: d.date, count: d.contributionCount });
         }
         return { total: cal.totalContributions, days };
-    } catch {
+    } catch (err: any) {
+        console.error("fetchCalendar failed:", err?.message ?? err);
         return null;
     }
 }
 
 export async function fetchActivity(token: string | undefined, user = "prsdx"):
     Promise<{ lastPush: Date | null; merged24h: number } | null> {
-    if (!token) return null;
+    if (!token) { console.error("fetchActivity: no token provided"); return null; }
     try {
         const data = await post(ACTIVITY_QUERY(user), token);
         const u = data.user;
