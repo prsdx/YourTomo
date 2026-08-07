@@ -18,9 +18,7 @@ state machine, rendered to animated SVG by a GitHub Action that lives in
 
 ---
 
-## See it alive
 
-https://github.com/user-attachments/assets/4383d073-171e-41e7-a5ca-651fe3a2f6e9
 
 ## Quick start (5 minutes)
 
