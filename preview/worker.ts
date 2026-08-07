@@ -77,13 +77,15 @@ export default {
         try {
             svg = await renderPreview(username, force, theme, svgType, env.GITHUB_TOKEN);
         } catch (err) {
-            return new Response(`render failed: ${String(err)}\n`, { status: 500 });
+            console.error(`preview render error for ${username}`);
+            return new Response("render failed\n", { status: 500 });
         }
 
         const resp = new Response(svg, {
             headers: {
                 "Content-Type": "image/svg+xml; charset=utf-8",
                 "Cache-Control": `public, max-age=${CACHE_TTL_S}`,
+                "X-Content-Type-Options": "nosniff",
             },
         });
         if (cache) ctx.waitUntil(cache.put(request, resp.clone()));
