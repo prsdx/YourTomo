@@ -1,0 +1,61 @@
+# YourTomo live preview (Cloudflare Worker)
+
+Try the cat on any GitHub profile before installing the Action. Read-only and
+ephemeral: public GitHub API calls only, no write-scoped tokens, no repo
+commits, no state — render and return.
+
+It reuses the Action's own modules (`../src/githubApi.ts`, `../src/graphApi.ts`,
+`../src/state.ts`, `../src/render.ts`) — the state machine and renderer are not
+reimplemented here.
+
+## Endpoints
+
+| Route | What it does |
+|---|---|
+| `GET /` | Landing page: username field, state dropdown (auto + the 9 states), dark/light toggle |
+| `GET /preview?username=<name>&state=<optional>&theme=dark\|light` | Live-rendered `pet.svg` (`image/svg+xml`, `Cache-Control: public, max-age=300`) |
+
+`state` accepts the same list as the Action's `force-state` input (shared
+`VALID_STATES` from `../src/state.ts`): overheat, release, zoomies, sleeping,
+hibernating, sick, content, hungry, grumpy. Invalid values are ignored (fall
+back to real data). Unknown usernames render the honest "github api is quiet"
+cat rather than an error page.
+
+## Deploy (one time)
+
+```bash
+cd preview
+npm install          # wrangler is the only devDependency
+npx wrangler login   # or: export CLOUDFLARE_API_TOKEN=...
+npm run deploy       # -> https://yourtomo.<your-subdomain>.workers.dev
+```
+
+Then:
+
+1. **Recommended:** give it a read-only token so the 60/hr unauthenticated
+   GitHub limit (shared across Cloudflare egress IPs) becomes 5,000/hr:
+   `npx wrangler secret put GITHUB_TOKEN` — a fine-grained token with no
+   scopes beyond public read is enough. Never use a write-scoped token.
+2. **Abuse protection:** responses are edge-cached 5 minutes per
+   `username+state+theme`, which absorbs normal traffic. On top of that, add
+   a rate-limiting rule in the Cloudflare dashboard
+   (Security → WAF → Rate limiting rules, e.g. 30 req/min per IP on `/preview*`).
+3. Update the preview link in the repo's main `README.md` if your
+   `workers.dev` subdomain isn't `prsdx`.
+
+## Local development
+
+```bash
+npm run dev          # http://localhost:8787
+```
+
+No token needed to hack on it — without `GITHUB_TOKEN` the calendar/activity
+queries skip themselves and the cat renders its fallback slabs, exactly like
+the Action's tokenless path.
+
+## Intentional differences from the Action's output
+
+- UTC drives the sleeping window/greeting (no per-user timezone input here).
+- No star/follower milestone confetti (needs the committed `state.json`
+  delta memory; the preview stores nothing).
+- No language-dream detail (would cost ~25 extra API calls per render).

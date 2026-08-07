@@ -22,6 +22,10 @@ state machine, rendered to animated SVG by a GitHub Action that lives in
 
 ## Quick start (5 minutes)
 
+**Try it first** — see the cat on *your own* profile before installing
+anything → **[yourtomo.prsdx.workers.dev](https://yourtomo.prsdx.workers.dev)**
+(read-only, nothing is stored).
+
 **1.** Add this workflow to your profile repo (`your-username/your-username`)
 as `.github/workflows/pet.yml`:
 

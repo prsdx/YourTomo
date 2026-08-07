@@ -1,0 +1,14 @@
+# YourTomo live preview - Cloudflare Worker (free tier, fast cold start).
+# Deploy:  npm install && npm run deploy   (see README.md in this directory)
+name = "yourtomo"
+main = "worker.ts"
+compatibility_date = "2025-06-01"
+
+# nodejs_compat lets the Action's own modules (../src/*.ts) keep reading
+# process.env, so the preview reuses them unchanged.
+compatibility_flags = ["nodejs_compat"]
+
+# Optional but recommended: give the worker a READ-ONLY GitHub token to raise
+# the API rate limit from 60/hr (shared egress IP) to 5,000/hr:
+#   npx wrangler secret put GITHUB_TOKEN
+# Never use a token with write scopes - the preview is render-and-return.
