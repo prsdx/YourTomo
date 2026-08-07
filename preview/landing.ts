@@ -31,9 +31,10 @@ export const LANDING_HTML = `<!doctype html>
          border-radius: 6px; padding: 9px 12px; font: inherit; }
   input[type=text] { flex: 1 1 200px; }
   .theme-toggle { display: inline-flex; border: 1px solid #30363d; border-radius: 6px; overflow: hidden; }
-  .theme-toggle label { padding: 9px 14px; cursor: pointer; color: #8b949e; user-select: none; }
-  .theme-toggle input { display: none; }
-  .theme-toggle input:checked + span { color: #e6edf3; font-weight: 600; }
+  .theme-toggle label, .type-toggle label { padding: 9px 14px; cursor: pointer; color: #8b949e; user-select: none; }
+  .theme-toggle input, .type-toggle input { display: none; }
+  .theme-toggle input:checked + span, .type-toggle input:checked + span { color: #e6edf3; font-weight: 600; }
+  .type-toggle { display: inline-flex; border: 1px solid #30363d; border-radius: 6px; overflow: hidden; }
   button { background: #238636; border: 0; color: #fff; border-radius: 6px; padding: 10px 18px;
            font: inherit; font-weight: 600; cursor: pointer; }
   button:hover { background: #2ea043; }
@@ -55,6 +56,12 @@ export const LANDING_HTML = `<!doctype html>
   <form id="f">
     <input id="u" type="text" placeholder="github username" autocomplete="off" spellcheck="false" required>
     <select id="s" title="pet state">${STATE_OPTIONS}</select>
+    <span class="type-toggle">
+      <label><input type="radio" name="svgtype" value="pet" checked><span>pet</span></label>
+      <label><input type="radio" name="svgtype" value="isocat"><span>isocat</span></label>
+      <label><input type="radio" name="svgtype" value="graph"><span>graph</span></label>
+      <label><input type="radio" name="svgtype" value="langs"><span>langs</span></label>
+    </span>
     <span class="theme-toggle">
       <label><input type="radio" name="theme" value="dark" checked><span>dark</span></label>
       <label><input type="radio" name="theme" value="light"><span>light</span></label>
@@ -83,6 +90,7 @@ function previewUrl() {
   p.set('username', u.value.trim());
   if (s.value) p.set('state', s.value);
   p.set('theme', document.querySelector('input[name=theme]:checked').value);
+  p.set('type', document.querySelector('input[name=svgtype]:checked').value);
   return '/preview?' + p.toString();
 }
 function go(e) {
@@ -100,6 +108,9 @@ function go(e) {
 f.addEventListener('submit', go);
 s.addEventListener('change', go);
 Array.prototype.forEach.call(document.querySelectorAll('input[name=theme]'), function (r) {
+  r.addEventListener('change', go);
+});
+Array.prototype.forEach.call(document.querySelectorAll('input[name=svgtype]'), function (r) {
   r.addEventListener('change', go);
 });
 var pre = new URLSearchParams(location.search).get('username');

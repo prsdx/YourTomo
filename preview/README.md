@@ -13,7 +13,7 @@ reimplemented here.
 | Route | What it does |
 |---|---|
 | `GET /` | Landing page: username field, state dropdown (auto + the 9 states), dark/light toggle |
-| `GET /preview?username=<name>&state=<optional>&theme=dark\|light` | Live-rendered `pet.svg` (`image/svg+xml`, `Cache-Control: public, max-age=300`) |
+| `GET /preview?username=<name>&state=<optional>&type=pet\|isocat\|graph\|langs&theme=dark\|light` | Live-rendered SVG (`image/svg+xml`, `Cache-Control: public, max-age=300`). `type` defaults to `pet`. |
 
 `state` accepts the same list as the Action's `force-state` input (shared
 `VALID_STATES` from `../src/state.ts`): overheat, release, zoomies, sleeping,
@@ -59,6 +59,5 @@ the Action's tokenless path.
 ## Intentional differences from the Action's output
 
 - UTC drives the sleeping window/greeting (no per-user timezone input here).
-- No star/follower milestone confetti (needs the committed `state.json`
-  delta memory; the preview stores nothing).
-- No language-dream detail (would cost ~25 extra API calls per render).
+- No star/follower milestone confetti (needs the committed `state.json` delta memory; the preview stores nothing).
+- The `langs` chart costs ~25 extra REST calls per render — this is the one SVG type that really benefits from the 5-minute edge cache and an optional `GITHUB_TOKEN`.

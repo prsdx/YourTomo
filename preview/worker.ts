@@ -8,16 +8,20 @@
 // The state machine and renderer are NOT reimplemented here: this imports
 // the Action's own modules from ../src/ (framework-agnostic pure functions).
 
-import { fetchEvents, fetchProfile } from "../src/githubApi.ts";
+import { fetchEvents, fetchRepos, fetchLanguages, fetchProfile } from "../src/githubApi.ts";
 import { fetchCalendar, fetchActivity } from "../src/graphApi.ts";
 import {
     decide, applyForceState, greetingFor, ownerHour, currentStreak,
     isBirthday, lastPushedRepo, isWeekend, season, weeklyDigest,
 } from "../src/state.ts";
-import { buildSvg, type SceneOpts } from "../src/render.ts";
+import { buildSvg, PALETTES, type SceneOpts } from "../src/render.ts";
+import { buildGraphSvg } from "../src/graphRender.ts";
+import { buildIsoSvg } from "../src/isoRender.ts";
+import { langsChart } from "../src/charts.ts";
 import { LANDING_HTML } from "./landing.ts";
 
-const CACHE_TTL_S = 300; // edge cache + Cache-Control, protects the GitHub API
+const CACHE_TTL_S = 300;
+type SvgType = "pet" | "isocat" | "graph" | "langs";
 
 interface Env {
     GITHUB_TOKEN?: string; // optional read-only secret, raises API rate limits
@@ -51,6 +55,9 @@ export default {
         }
         const theme = url.searchParams.get("theme") === "light" ? "light" : "dark";
         const force = (url.searchParams.get("state") ?? "").trim();
+        const svgType: SvgType = ((["pet", "isocat", "graph", "langs"] as string[]).includes(url.searchParams.get("type") ?? "")
+            ? url.searchParams.get("type")!
+            : "pet") as SvgType;
 
         // Edge cache keyed on the full URL (username+state+theme): repeat hits
         // never reach the GitHub API. Add a per-IP rate-limiting rule in the
@@ -65,7 +72,7 @@ export default {
 
         let svg: string;
         try {
-            svg = await renderPreview(username, force, theme);
+            svg = await renderPreview(username, force, theme, svgType);
         } catch (err) {
             return new Response(`render failed: ${String(err)}\n`, { status: 500 });
         }
@@ -81,40 +88,60 @@ export default {
     },
 };
 
-// Same fetch + decide + buildSvg pipeline as generate.ts, in-memory only.
-// Deliberate differences: no state.json delta memory (ephemeral -> star/follower
-// milestone confetti stays off), no CI/issue watchers (those need the user's
-// own watched-repos config), and no per-repo language fetch (25 extra API
-// calls for one dream-bubble detail is a bad trade on a public endpoint).
-async function renderPreview(username: string, force: string, theme: "dark" | "light"): Promise<string> {
+// Same fetch + decide + render pipeline as generate.ts, in-memory only.
+// Routes to the correct SVG builder based on svgType. Deliberate differences
+// from the Action: no state.json delta memory (star/follower milestones
+// stay off), no CI/issue watchers (those need the owner's watched-repos
+// config), and the langs chart does extra API calls here (25 repo-fetches)
+// so it really benefits from the 5-minute edge cache + an optional token.
+async function renderPreview(username: string, force: string, theme: "dark" | "light", svgType: SvgType): Promise<string> {
     const token = process.env.GITHUB_TOKEN || process.env.PET_GITHUB_TOKEN;
-    const [events, profile] = await Promise.all([fetchEvents(username), fetchProfile(username)]);
-    const [calendar, activity] = await Promise.all([fetchCalendar(token, username), fetchActivity(token, username)]);
     const now = new Date();
+    const [events, profile] = await Promise.all([fetchEvents(username), fetchProfile(username)]);
+
+    // calendar/activity needed for pet/isocat/graph state + captions; langs
+    // only needs event data for the state label (no scene, no graph)
+    let calendar = null, activity = null;
+    if (svgType !== "langs") {
+        [calendar, activity] = await Promise.all([fetchCalendar(token, username), fetchActivity(token, username)]);
+    }
 
     let status = decide(events, {
         lastPush: activity?.lastPush ?? null,
         merged24h: activity?.merged24h ?? 0,
     }, {}, now);
-    status = applyForceState(status, force); // ?state= mirrors the PET_FORCE_STATE input
+    status = applyForceState(status, force);
 
-    const streak = currentStreak(calendar?.days ?? null);
-    const week = weeklyDigest(events, now);
-    const labelExtra: string[] = [];
-    if (week.pushes || week.merged) labelExtra.push(`${week.pushes} pushes · ${week.merged} prs this week`);
-    if (calendar) labelExtra.push(`${calendar.total} contributions this year`);
+    switch (svgType) {
+        case "isocat":
+            return buildIsoSvg(status.state, status.caption, calendar, theme, true);
+        case "graph":
+            return buildGraphSvg(status.state, status.caption, calendar, theme, true);
+        case "langs": {
+            const repos = await fetchRepos(username);
+            const langs = await fetchLanguages(username, repos);
+            return langsChart(langs, repos.length, theme === "light" ? PALETTES.light : PALETTES.dark);
+        }
+        default: { // pet
+            const streak = currentStreak(calendar?.days ?? null);
+            const week = weeklyDigest(events, now);
+            const labelExtra: string[] = [];
+            if (week.pushes || week.merged) labelExtra.push(`${week.pushes} pushes · ${week.merged} prs this week`);
+            if (calendar) labelExtra.push(`${calendar.total} contributions this year`);
 
-    const scene: SceneOpts = {
-        hackingOn: lastPushedRepo(events) ?? "",
-        streakDays: streak,
-        birthday: isBirthday(profile?.createdAt, now),
-        hour: ownerHour(now),
-        weekend: isWeekend(now),
-        seasonal: season(now),
-        touchGrass: streak >= 21,
-        confetti: false,
-        labelExtra,
-    };
-    const name = profile?.name?.split(" ")[0]?.toLowerCase() || "";
-    return buildSvg(status.state, status.caption, theme, greetingFor(now, name), "", true, scene);
+            const scene: SceneOpts = {
+                hackingOn: lastPushedRepo(events) ?? "",
+                streakDays: streak,
+                birthday: isBirthday(profile?.createdAt, now),
+                hour: ownerHour(now),
+                weekend: isWeekend(now),
+                seasonal: season(now),
+                touchGrass: streak >= 21,
+                confetti: false,
+                labelExtra,
+            };
+            const name = profile?.name?.split(" ")[0]?.toLowerCase() || "";
+            return buildSvg(status.state, status.caption, theme, greetingFor(now, name), "", true, scene);
+        }
+    }
 }
