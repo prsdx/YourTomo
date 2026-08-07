@@ -1,6 +1,6 @@
 # YourTomo live preview - Cloudflare Worker (free tier, fast cold start).
 # Deploy:  npm install && npm run deploy   (see README.md in this directory)
-name = "yourtomo"
+name = "prsdx"
 main = "worker.ts"
 compatibility_date = "2025-06-01"
 

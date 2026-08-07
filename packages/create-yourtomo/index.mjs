@@ -18,7 +18,7 @@ import { dirname, join } from "node:path";
 import { execFileSync } from "node:child_process";
 
 const ACTION = "prsdx/github-pet@v1";
-const PREVIEW = "https://yourtomo.prsdx.workers.dev";
+const PREVIEW = "https://prsdx.yourtomo.workers.dev";
 const WORKFLOW_PATH = join(".github", "workflows", "pet.yml");
 
 const GITHUB_LOGIN = /^[a-z0-9](?:[a-z0-9-]{0,37}[a-z0-9])?$/i;

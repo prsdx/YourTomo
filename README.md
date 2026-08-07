@@ -23,7 +23,7 @@ state machine, rendered to animated SVG by a GitHub Action that lives in
 ## Quick start (5 minutes)
 
 **Try it first** — see the cat on *your own* profile before installing
-anything → **[yourtomo.prsdx.workers.dev](https://yourtomo.prsdx.workers.dev)**
+anything → **[prsdx.yourtomo.workers.dev](https://prsdx.yourtomo.workers.dev)**
 (read-only, nothing is stored).
 
 **Zero-config install:** `npx create-yourtomo` asks a few questions (username,

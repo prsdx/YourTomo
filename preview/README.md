@@ -49,7 +49,10 @@ Then:
 npm run dev          # http://localhost:8787
 ```
 
-No token needed to hack on it — without `GITHUB_TOKEN` the calendar/activity
+The worker name is `prsdx` (see `wrangler.toml`), so the deployed URL is
+`https://prsdx.<your-subdomain>.workers.dev`. Update the two hardcoded URLs
+(in the repo `README.md` and `packages/create-yourtomo/index.mjs`) if your
+Cloudflare account subdomain is not `yourtomo`. No token needed to hack on
 queries skip themselves and the cat renders its fallback slabs, exactly like
 the Action's tokenless path.
 
