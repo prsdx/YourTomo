@@ -1,14 +1,24 @@
-# github-pet 🐱
+<div align="center">
 
-**An animated pixel cat for your GitHub profile README** that reacts to your
-**real GitHub activity**. Zero dependencies, no JavaScript, no hosting - a
-deterministic state machine rendered to animated SVGs by a **GitHub Action**
-in *your* repo: banner pet, isometric contribution graph city, language
-charts, and a mood badge, all self-updating on a schedule.
+# 🐱 YourTomo
 
-<img alt="github-pet banner - the cat living its life" src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg" width="100%">
+**A pixel cat that lives on your GitHub profile and reacts to what you actually do.**
 
-**See it alive** — the cat on a real profile:
+No JavaScript. No hosting. No dependencies at runtime — a deterministic
+state machine, rendered to animated SVG by a GitHub Action that lives in
+*your* repo.
+
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-YourTomo-blue?logo=github)](https://github.com/marketplace/actions/yourtomo)
+[![MIT license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/prsdx/github-pet?style=flat)](https://github.com/prsdx/github-pet/stargazers)
+
+<img alt="YourTomo banner — the cat living its life" src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg" width="100%">
+
+</div>
+
+---
+
+## See it alive
 
 https://github.com/user-attachments/assets/4383d073-171e-41e7-a5ca-651fe3a2f6e9
 
@@ -18,7 +28,7 @@ https://github.com/user-attachments/assets/4383d073-171e-41e7-a5ca-651fe3a2f6e9
 as `.github/workflows/pet.yml`:
 
 ```yaml
-name: My github-pet
+name: My YourTomo cat
 on:
   schedule:
     - cron: '23 */6 * * *'   # every 6h - pick your own minute
@@ -48,18 +58,24 @@ jobs:
 </picture>
 ```
 
-**3.** Run it once manually (Actions → *My github-pet* → Run workflow), or
-wait for the schedule. That's it - it keeps itself alive forever.
+**3.** Run it once manually (Actions → *My YourTomo cat* → Run workflow), or
+wait for the schedule. That's it — it keeps itself alive forever.
 
 ## What you get
 
-| File | What it is |
+| | |
 |---|---|
-| `pet.svg` / `pet-light.svg` | Banner scene: the cat eats, bats its yarn, sleeps in its box - greets visitors by time of day, points them around your profile, shows what you're currently hacking on, keeps a streak campfire burning, celebrates your GitHub-iversary, and lives under a day/night sky |
-| `isocat.svg` / `isocat-light.svg` | Your full-year contributions as an **isometric city**, cat hopping along each week's busiest day |
-| `graph.svg` / `graph-light.svg` | The classic flat contribution graph with the hopping kitty |
-| `langs.svg` / `langs-light.svg` | Language share chart from real repo bytes |
-| `pet-badge.svg` | shields-style mini badge (`github-pet | content`) with the current mood - for repo READMEs, not just profiles |
+| **`pet.svg`** — Banner scene | <img src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg" width="360"> |
+| **`isocat.svg`** — Isometric contribution city | <img src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/isocat.svg" width="360"> |
+| **`graph.svg`** — Flat contribution graph | <img src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/graph.svg" width="360"> |
+| **`langs.svg`** — Language share chart | <img src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/langs.svg" width="360"> |
+| **`pet-badge.svg`** — Mini status badge | <img src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet-badge.svg" width="200"> |
+
+The banner cat eats, bats its yarn, sleeps in its box — greets visitors by
+time of day, points them around your profile, shows what you're currently
+hacking on, keeps a streak campfire burning, celebrates your GitHub-iversary,
+and lives under a day/night sky. Every SVG also ships a `-light` variant for
+light-mode profiles.
 
 Badge embed: `![pet](https://raw.githubusercontent.com/your-username/your-username/main/dist/pet-badge.svg)`
 
@@ -105,7 +121,7 @@ milestones** rains confetti (via a tiny committed `state.json` memory).
 | `accent-color` | *(empty)* | `#rrggbb` brand color for the cat's accents |
 | `contact-line` | *(empty)* | Third guide bubble, e.g. your email. Empty skips it |
 | `output-dir` | `dist` | Where the SVGs are written |
-| `attribution` | `true` | Appends `github-pet by prsdx` to the caption strip 💙 |
+| `attribution` | `true` | Appends `YourTomo by prsdx` to the caption strip 💙 |
 
 ## FAQ
 
@@ -128,5 +144,6 @@ milestones** rains confetti (via a tiny committed `state.json` memory).
 
 ---
 
-Zero-dependency TypeScript. Built by hand - pixel grids, state machine and
-all. [Live on the author's profile](https://github.com/prsdx) · MIT licensed.
+Zero runtime dependencies, TypeScript, built by hand — pixel grids, state
+machine and all. [Live on the author's profile](https://github.com/prsdx) ·
+MIT licensed.
