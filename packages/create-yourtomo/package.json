@@ -1,0 +1,22 @@
+{
+  "name": "create-yourtomo",
+  "version": "1.0.0",
+  "description": "Setup wizard for YourTomo - the pixel cat that lives on your GitHub profile and reacts to your real activity",
+  "keywords": ["github", "github-profile", "readme", "svg", "pixel-cat", "pet", "yourtomo", "create"],
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-yourtomo": "./index.mjs"
+  },
+  "files": ["index.mjs"],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prsdx/github-pet.git",
+    "directory": "packages/create-yourtomo"
+  },
+  "homepage": "https://github.com/prsdx/github-pet",
+  "bugs": "https://github.com/prsdx/github-pet/issues"
+}
