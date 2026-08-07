@@ -64,8 +64,10 @@ export const LANDING_HTML = `<!doctype html>
            text-transform: uppercase; letter-spacing: .6px;
            border-bottom: 1px solid #30363d; background: #161b22; }
   .img-wrap { min-height: 40px; position: relative; }
-  .img-wrap img { width: 100%; display: block; transition: opacity .15s; }
-  .img-wrap img.loading { opacity: .3; }
+  .img-wrap img { width: 100%; display: block; }
+  .img-wrap.loading { background: linear-gradient(90deg, #161b22 25%, #21262d 50%, #161b22 75%); background-size: 200% 100%; animation: shimmer 1.2s ease-in-out infinite; border-radius: 0 0 10px 10px; }
+  .img-wrap.loading img { opacity: 0; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   .url-line { padding: 6px 12px; font-size: 12px; color: #8b949e; word-break: break-all;
               border-top: 1px solid #30363d; background: #161b22; }
   .url-line code { color: #58a6ff; }
@@ -125,21 +127,23 @@ function go(e) {
   for (var i = 0; i < ids.length; i++) {
     var id = ids[i];
     var img = document.getElementById(id);
+    var wrap = img.parentElement;
     var src = buildUrl(id, theme);
     loading[id] = true;
-    img.classList.add('loading');
-    img.onload = (function(imgid, t) { return function() {
+    wrap.classList.add('loading');
+    img.onload = (function(imgid, w, t) { return function() {
       var el = document.getElementById(imgid);
-      el.classList.remove('loading');
+      w.classList.remove('loading');
       loading[imgid] = false;
       var urlEl = document.getElementById(imgid + '-url');
       urlEl.innerHTML = '<code>' + location.origin + buildUrl(imgid, t) + '</code>';
       allDone();
-    };})(id, theme);
-    img.onerror = (function(imgid) { return function() {
+    };})(id, wrap, theme);
+    img.onerror = (function(imgid, w) { return function() {
+      w.classList.remove('loading');
       loading[imgid] = false;
       allDone();
-    };})(id);
+    };})(id, wrap);
     img.src = src;
   }
 }
