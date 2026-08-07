@@ -1,7 +1,6 @@
-// Landing page for the live preview - plain HTML/JS, no framework, in the
-// same zero-heavy-dependency spirit as the rest of the repo. The state
-// dropdown is built from VALID_STATES so it can never drift from the
-// state machine's idea of a valid state.
+// Landing page for the live preview — gallery layout showing all 4 SVG types
+// (pet, isocat, graph, langs) simultaneously. Plain HTML/JS, no framework.
+// The state dropdown is built from VALID_STATES so it never drifts.
 
 import { VALID_STATES } from "../src/state.ts";
 
@@ -9,6 +8,21 @@ const STATE_OPTIONS = [
     `<option value="" selected>auto (real data)</option>`,
     ...VALID_STATES.map((s) => `<option value="${s}">${s}</option>`),
 ].join("");
+
+const SVGS = [
+    { id: "pet",    label: "banner scene" },
+    { id: "isocat", label: "iso city" },
+    { id: "graph",  label: "contribution graph" },
+    { id: "langs",  label: "language chart" },
+] as const;
+
+const CARDS = SVGS.map(({ id, label }) =>
+    `<div class="card">
+        <div class="label">${label}</div>
+        <div class="img-wrap"><img id="${id}" alt="${label}"></div>
+        <div class="url-line" id="${id}-url"></div>
+    </div>`
+).join("");
 
 export const LANDING_HTML = `<!doctype html>
 <html lang="en">
@@ -21,96 +35,121 @@ export const LANDING_HTML = `<!doctype html>
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; background: #0d1117; color: #e6edf3;
          font: 15px/1.5 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-         display: flex; flex-direction: column; align-items: center; padding: 48px 16px; }
-  main { width: 100%; max-width: 940px; }
-  h1 { font-size: 28px; margin: 0 0 4px; }
-  p.sub { color: #8b949e; margin: 0 0 24px; }
+         display: flex; flex-direction: column; align-items: center; padding: 36px 16px; }
+  main { width: 100%; max-width: 980px; }
+  h1 { font-size: 28px; margin: 0 0 2px; }
+  p.sub { color: #8b949e; margin: 0 0 20px; }
   form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-         background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 14px; }
-  input[type=text], select { background: #0d1117; color: #e6edf3; border: 1px solid #30363d;
-         border-radius: 6px; padding: 9px 12px; font: inherit; }
-  input[type=text] { flex: 1 1 200px; }
-  .theme-toggle { display: inline-flex; border: 1px solid #30363d; border-radius: 6px; overflow: hidden; }
-  .theme-toggle label, .type-toggle label { padding: 9px 14px; cursor: pointer; color: #8b949e; user-select: none; }
-  .theme-toggle input, .type-toggle input { display: none; }
-  .theme-toggle input:checked + span, .type-toggle input:checked + span { color: #e6edf3; font-weight: 600; }
-  .type-toggle { display: inline-flex; border: 1px solid #30363d; border-radius: 6px; overflow: hidden; }
-  button { background: #238636; border: 0; color: #fff; border-radius: 6px; padding: 10px 18px;
-           font: inherit; font-weight: 600; cursor: pointer; }
+         background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+         padding: 12px 14px; }
+  input[type=text], select { background: #0d1117; color: #e6edf3;
+         border: 1px solid #30363d; border-radius: 6px; padding: 9px 12px;
+         font: inherit; }
+  input[type=text] { flex: 1 1 180px; }
+  .theme-toggle { display: inline-flex; border: 1px solid #30363d;
+         border-radius: 6px; overflow: hidden; }
+  .theme-toggle label { padding: 9px 12px; cursor: pointer; color: #8b949e;
+         user-select: none; }
+  .theme-toggle input { display: none; }
+  .theme-toggle input:checked + span { color: #e6edf3; font-weight: 600; }
+  button { background: #238636; border: 0; color: #fff; border-radius: 6px;
+           padding: 10px 18px; font: inherit; font-weight: 600; cursor: pointer; }
   button:hover { background: #2ea043; }
-  #stage { margin-top: 24px; }
-  #pet { width: 100%; display: block; border-radius: 10px; background: #0d1117;
-         border: 1px solid #30363d; transition: opacity .2s; }
-  #status { color: #8b949e; font-size: 13px; margin-top: 8px; min-height: 1.2em; }
-  #url-line { font-size: 13px; color: #8b949e; word-break: break-all; }
-  #url-line code { color: #58a6ff; }
-  footer { margin-top: 40px; color: #8b949e; font-size: 13px; text-align: center; }
+  #gallery { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr;
+             gap: 16px; }
+  @media (max-width: 640px) { #gallery { grid-template-columns: 1fr; } }
+  .card { background: #0d1117; border: 1px solid #30363d; border-radius: 10px;
+          overflow: hidden; }
+  .label { padding: 8px 12px; font-size: 12px; font-weight: 600; color: #8b949e;
+           text-transform: uppercase; letter-spacing: .6px;
+           border-bottom: 1px solid #30363d; background: #161b22; }
+  .img-wrap { min-height: 40px; position: relative; }
+  .img-wrap img { width: 100%; display: block; transition: opacity .15s; }
+  .img-wrap img.loading { opacity: .3; }
+  .url-line { padding: 6px 12px; font-size: 12px; color: #8b949e; word-break: break-all;
+              border-top: 1px solid #30363d; background: #161b22; }
+  .url-line code { color: #58a6ff; }
+  .url-line:empty { display: none; }
+  #status { color: #8b949e; font-size: 13px; margin-top: 10px; min-height: 1.2em; }
+  footer { margin-top: 32px; color: #8b949e; font-size: 13px; text-align: center; }
   a { color: #58a6ff; }
 </style>
 </head>
 <body>
 <main>
   <h1>&#128049; YourTomo <span style="color:#8b949e;font-weight:400">&middot; live preview</span></h1>
-  <p class="sub">The pixel cat that lives on your GitHub profile and reacts to what you
-     actually do. Try it on your own data &mdash; no install, read-only, nothing is stored.</p>
+  <p class="sub">The pixel cat that lives on your GitHub profile — see all four SVGs, live.
+     No install, nothing stored.</p>
   <form id="f">
-    <input id="u" type="text" placeholder="github username" autocomplete="off" spellcheck="false" required>
+    <input id="u" type="text" placeholder="github username" autocomplete="off"
+           spellcheck="false" required>
     <select id="s" title="pet state">${STATE_OPTIONS}</select>
-    <span class="type-toggle">
-      <label><input type="radio" name="svgtype" value="pet" checked><span>pet</span></label>
-      <label><input type="radio" name="svgtype" value="isocat"><span>isocat</span></label>
-      <label><input type="radio" name="svgtype" value="graph"><span>graph</span></label>
-      <label><input type="radio" name="svgtype" value="langs"><span>langs</span></label>
-    </span>
     <span class="theme-toggle">
       <label><input type="radio" name="theme" value="dark" checked><span>dark</span></label>
       <label><input type="radio" name="theme" value="light"><span>light</span></label>
     </span>
     <button type="submit">summon the cat</button>
   </form>
-  <div id="stage" hidden>
-    <img id="pet" alt="your github pet, rendered live">
-    <div id="status"></div>
-    <div id="url-line"></div>
+  <div id="status"></div>
+  <div id="gallery" hidden>
+    ${CARDS}
   </div>
   <footer>
-    <p>Live data from the public GitHub API &middot; cached 5 minutes &middot; read-only:
-       no write tokens, nothing committed anywhere.<br>
-       Like it? <a href="https://github.com/prsdx/github-pet">Get your own YourTomo cat</a>
-       &mdash; free, one workflow file.</p>
+    <p>Live data from the public GitHub API &middot; cached 5 minutes &middot; read-only.
+       <a href="https://github.com/prsdx/github-pet">Get your own YourTomo cat</a>.</p>
   </footer>
 </main>
 <script>
-var f = document.getElementById('f'), u = document.getElementById('u'),
-    s = document.getElementById('s'), img = document.getElementById('pet'),
-    stage = document.getElementById('stage'), statusEl = document.getElementById('status'),
-    urlLine = document.getElementById('url-line');
-function previewUrl() {
+var f = document.getElementById('f'),
+    u = document.getElementById('u'),
+    s = document.getElementById('s'),
+    gallery = document.getElementById('gallery'),
+    statusEl = document.getElementById('status');
+var reactive = { pet: true, isocat: true, graph: true, langs: false };
+var loading = {};
+function buildUrl(id, theme) {
   var p = new URLSearchParams();
   p.set('username', u.value.trim());
-  if (s.value) p.set('state', s.value);
-  p.set('theme', document.querySelector('input[name=theme]:checked').value);
-  p.set('type', document.querySelector('input[name=svgtype]:checked').value);
+  if (reactive[id] && s.value) p.set('state', s.value);
+  p.set('theme', theme);
+  p.set('type', id);
   return '/preview?' + p.toString();
 }
 function go(e) {
   if (e) e.preventDefault();
   if (!u.value.trim()) { u.focus(); return; }
-  var src = previewUrl();
-  stage.hidden = false;
-  statusEl.textContent = 'waking the cat up...';
-  img.style.opacity = '0.4';
-  img.onload = function () { img.style.opacity = '1'; statusEl.textContent = ''; };
-  img.onerror = function () { img.style.opacity = '1'; statusEl.textContent = 'something went wrong - check the username and try again.'; };
-  img.src = src;
-  urlLine.innerHTML = 'direct link: <code>' + location.origin + src + '</code>';
+  gallery.hidden = false;
+  statusEl.textContent = 'rendering...';
+  var theme = document.querySelector('input[name=theme]:checked').value;
+  var ids = ['pet','isocat','graph','langs'];
+  for (var i = 0; i < ids.length; i++) {
+    var id = ids[i];
+    var img = document.getElementById(id);
+    var src = buildUrl(id, theme);
+    loading[id] = true;
+    img.classList.add('loading');
+    img.onload = (function(imgid, t) { return function() {
+      var el = document.getElementById(imgid);
+      el.classList.remove('loading');
+      loading[imgid] = false;
+      var urlEl = document.getElementById(imgid + '-url');
+      urlEl.innerHTML = '<code>' + location.origin + buildUrl(imgid, t) + '</code>';
+      allDone();
+    };})(id, theme);
+    img.onerror = (function(imgid) { return function() {
+      loading[imgid] = false;
+      allDone();
+    };})(id);
+    img.src = src;
+  }
+}
+function allDone() {
+  for (var k in loading) if (loading[k]) return;
+  statusEl.textContent = '';
 }
 f.addEventListener('submit', go);
 s.addEventListener('change', go);
 Array.prototype.forEach.call(document.querySelectorAll('input[name=theme]'), function (r) {
-  r.addEventListener('change', go);
-});
-Array.prototype.forEach.call(document.querySelectorAll('input[name=svgtype]'), function (r) {
   r.addEventListener('change', go);
 });
 var pre = new URLSearchParams(location.search).get('username');
