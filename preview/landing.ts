@@ -1,4 +1,4 @@
-// Landing page for the live preview — gallery layout showing all 4 SVG types
+// Landing page for the live preview ï¿½ gallery layout showing all 4 SVG types
 // (pet, isocat, graph, langs) simultaneously. Plain HTML/JS, no framework.
 // The state dropdown is built from VALID_STATES so it never drifts.
 
@@ -55,8 +55,9 @@ export const LANDING_HTML = `<!doctype html>
   button { background: #238636; border: 0; color: #fff; border-radius: 6px;
            padding: 10px 18px; font: inherit; font-weight: 600; cursor: pointer; }
   button:hover { background: #2ea043; }
-  #gallery { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr;
-             gap: 16px; }
+  #gallery { margin-top: 20px; grid-template-columns: 1fr 1fr;
+           gap: 16px; }
+  #gallery:not([hidden]) { display: grid; }
   @media (max-width: 640px) { #gallery { grid-template-columns: 1fr; } }
   .card { background: #0d1117; border: 1px solid #30363d; border-radius: 10px;
           overflow: hidden; }
@@ -80,7 +81,7 @@ export const LANDING_HTML = `<!doctype html>
 <body>
 <main>
   <h1>&#128049; YourTomo <span style="color:#8b949e;font-weight:400">&middot; live preview</span></h1>
-  <p class="sub">The pixel cat that lives on your GitHub profile — see all four SVGs, live.
+  <p class="sub">The pixel cat that lives on your GitHub profile ï¿½ see all four SVGs, live.
      No install, nothing stored.</p>
   <form id="f">
     <input id="u" type="text" placeholder="github username" autocomplete="off"
