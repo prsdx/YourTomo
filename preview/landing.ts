@@ -81,7 +81,7 @@ export const LANDING_HTML = `<!doctype html>
 <body>
 <main>
   <h1>&#128049; YourTomo <span style="color:#8b949e;font-weight:400">&middot; live preview</span></h1>
-  <p class="sub">The pixel cat that lives on your GitHub profile � see all four SVGs, live.
+  <p class="sub">The friend that lives on your GitHub profile � see all four SVGs, live.
      No install, nothing stored.</p>
   <form id="f">
     <input id="u" type="text" placeholder="github username" autocomplete="off"
@@ -99,7 +99,7 @@ export const LANDING_HTML = `<!doctype html>
   </div>
   <footer>
     <p>Live data from the public GitHub API &middot; cached 5 minutes &middot; read-only.
-       <a href="https://github.com/prsdx/github-pet">Get your own YourTomo cat</a>.</p>
+       <a href="https://github.com/prsdx/github-pet">Get your own YourTomo </a>.</p>
   </footer>
 </main>
 <script>
