@@ -11,6 +11,7 @@ state machine, rendered to animated SVG by a GitHub Action that lives in
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-YourTomo-blue?logo=github)](https://github.com/marketplace/actions/yourtomo)
 [![MIT license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/prsdx/github-pet?style=flat)](https://github.com/prsdx/github-pet/stargazers)
+![Visitors](https://visitor-badge.laobi.icu/badge?page_id=prsdx.github-pet)
 
 <img alt="YourTomo banner — the cat living its life" src="https://raw.githubusercontent.com/prsdx/github-pet/main/dist/pet.svg" width="100%">
 
