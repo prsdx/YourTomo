@@ -33,8 +33,35 @@ function token(): string | undefined {
     return process.env.GITHUB_TOKEN || process.env.PET_GITHUB_TOKEN;
 }
 
-class GitHubError extends Error {
+export class GitHubError extends Error {
     constructor(public status: number, message: string) { super(message); }
+}
+
+// Preview-only diagnostics. The Action's fetchers above deliberately swallow
+// every failure (never break a profile). The live preview needs the real
+// reason instead - these two are only called by preview/worker.ts, and only
+// on the unhappy path (after the normal fetchers already came back empty),
+// so they add zero cost to the common case.
+
+export async function probeUsername(user: string): Promise<"exists" | "not_found" | "unknown"> {
+    try {
+        const data = await getJson(`/users/${user}`, true);
+        return data?.login ? "exists" : "unknown";
+    } catch (err) {
+        if (err instanceof GitHubError && err.status === 404) return "not_found";
+        return "unknown"; // rate limited, network error, etc. - inconclusive
+    }
+}
+
+export async function checkRateLimit(): Promise<{ remaining: number; limit: number; resetAt: number } | null> {
+    try {
+        const data = await getJson(`/rate_limit`, true);
+        const core = data?.resources?.core;
+        if (!core) return null;
+        return { remaining: core.remaining, limit: core.limit, resetAt: core.reset * 1000 };
+    } catch {
+        return null;
+    }
 }
 
 async function getJson(path: string, auth = true): Promise<any> {

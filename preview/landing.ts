@@ -74,6 +74,8 @@ export const LANDING_HTML = `<!doctype html>
   .url-line code { color: #58a6ff; }
   .url-line:empty { display: none; }
   #status { color: #8b949e; font-size: 13px; margin-top: 10px; min-height: 1.2em; }
+  #quota { color: #6e7681; font-size: 12px; margin-top: 4px; min-height: 1.2em; }
+  #quota.low { color: #f0883e; }
   footer { margin-top: 32px; color: #8b949e; font-size: 13px; text-align: center; }
   a { color: #58a6ff; }
 </style>
@@ -94,6 +96,7 @@ export const LANDING_HTML = `<!doctype html>
     <button type="submit">summon the cat</button>
   </form>
   <div id="status"></div>
+  <div id="quota"></div>
   <div id="gallery" hidden>
     ${CARDS}
   </div>
@@ -151,7 +154,19 @@ function go(e) {
 function allDone() {
   for (var k in loading) if (loading[k]) return;
   statusEl.textContent = '';
+  refreshQuota();
 }
+var quotaEl = document.getElementById('quota');
+function refreshQuota() {
+  fetch('/status').then(function (r) { return r.json(); }).then(function (q) {
+    if (q.remaining == null) { quotaEl.textContent = ''; return; }
+    var mins = Math.max(0, Math.round((q.resetAt - Date.now()) / 60000));
+    quotaEl.textContent = 'GitHub API quota: ' + q.remaining + '/' + q.limit +
+      ' \u00b7 resets in ' + mins + 'm';
+    quotaEl.className = q.remaining < 50 ? 'low' : '';
+  }).catch(function () {});
+}
+refreshQuota();
 f.addEventListener('submit', go);
 s.addEventListener('change', go);
 Array.prototype.forEach.call(document.querySelectorAll('input[name=theme]'), function (r) {

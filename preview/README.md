@@ -14,12 +14,17 @@ reimplemented here.
 |---|---|
 | `GET /` | Landing page: username field, state dropdown (auto + the 9 states), dark/light toggle |
 | `GET /preview?username=<name>&state=<optional>&type=pet\|isocat\|graph\|langs&theme=dark\|light` | Live-rendered SVG (`image/svg+xml`, `Cache-Control: public, max-age=300`). `type` defaults to `pet`. |
+| `GET /status` | Live GitHub API quota for the worker: JSON `{ remaining, limit, resetAt }` (or all `null` if unavailable), cached 30s. Drives the quota line on the landing page. |
 
 `state` accepts the same list as the Action's `force-state` input (shared
 `VALID_STATES` from `../src/state.ts`): overheat, release, zoomies, sleeping,
 hibernating, sick, content, hungry, grumpy. Invalid values are ignored (fall
-back to real data). Unknown usernames render the honest "github api is quiet"
-cat rather than an error page.
+back to real data). Unknown usernames, API rate-limit hits, and GitHub outages
+all render the honest fallback cat — but unlike the Action (where every failure
+looks identical by design), the preview detects the *reason* and replaces the
+caption with a precise diagnostic ("…isn't a GitHub username", "GitHub API limit
+reached…", or "GitHub API is temporarily unreachable…"). The caption is only
+overridden on the unhappy path, and never when a `state` is forced.
 
 ## Deploy (one time)
 

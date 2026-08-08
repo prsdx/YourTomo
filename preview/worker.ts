@@ -8,7 +8,7 @@
 // The state machine and renderer are NOT reimplemented here: this imports
 // the Action's own modules from ../src/ (framework-agnostic pure functions).
 
-import { fetchEvents, fetchRepos, fetchLanguages, fetchProfile } from "../src/githubApi.ts";
+import { fetchEvents, fetchRepos, fetchLanguages, fetchProfile, probeUsername, checkRateLimit } from "../src/githubApi.ts";
 import { fetchCalendar, fetchActivity } from "../src/graphApi.ts";
 import {
     decide, applyForceState, greetingFor, ownerHour, currentStreak,
@@ -44,6 +44,15 @@ export default {
                     "X-Frame-Options": "DENY",
                     "Referrer-Policy": "strict-origin-when-cross-origin",
                 },
+            });
+        }
+        // Live rate-limit diagnostics: lets the landing page show the real
+        // GitHub quota under the search bar. Read-only, cheap, 30s edge cache.
+        if (url.pathname === "/status") {
+            if (env.GITHUB_TOKEN && !process.env.GITHUB_TOKEN) process.env.GITHUB_TOKEN = env.GITHUB_TOKEN;
+            const quota = await checkRateLimit();
+            return new Response(JSON.stringify(quota ?? { remaining: null, limit: null, resetAt: null }), {
+                headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=30" },
             });
         }
         if (url.pathname !== "/preview") return new Response("not found\n", { status: 404 });
@@ -105,6 +114,22 @@ async function renderPreview(username: string, force: string, theme: "dark" | "l
     const now = new Date();
     const [events, profile] = await Promise.all([fetchEvents(username), fetchProfile(username)]);
 
+    // Unhappy path only: the normal fetchers silently swallow every failure, so
+    // if they came back empty we probe once more to tell the user *why* instead
+    // of showing a silent generic/empty state. Never runs on a normal render.
+    let diagOverride: string | null = null;
+    if (events.length === 0 && !profile) {
+        const [exists, quota] = await Promise.all([probeUsername(username), checkRateLimit()]);
+        if (exists === "not_found") {
+            diagOverride = `"${username}" isn't a GitHub username`;
+        } else if (quota && quota.remaining <= 1) {
+            const mins = Math.max(1, Math.ceil((quota.resetAt - Date.now()) / 60000));
+            diagOverride = `GitHub API limit reached - resets in ~${mins}m`;
+        } else {
+            diagOverride = "GitHub API is temporarily unreachable - try again shortly";
+        }
+    }
+
     let calendar = null, activity = null;
     if (svgType !== "langs") {
         [calendar, activity] = await Promise.all([fetchCalendar(token, username), fetchActivity(token, username)]);
@@ -120,6 +145,7 @@ async function renderPreview(username: string, force: string, theme: "dark" | "l
         merged24h: activity?.merged24h ?? 0,
     }, {}, now);
     status = applyForceState(status, force);
+    if (diagOverride && !force) status = { ...status, caption: diagOverride };
 
     switch (svgType) {
         case "isocat": {
