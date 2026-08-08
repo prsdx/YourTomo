@@ -17,7 +17,7 @@ import {
 import { buildSvg, PALETTES, type SceneOpts } from "../src/render.ts";
 import { buildGraphSvg } from "../src/graphRender.ts";
 import { buildIsoSvg } from "../src/isoRender.ts";
-import { langsChart } from "../src/charts.ts";
+import { langsChart, type LangsNote } from "../src/charts.ts";
 import { LANDING_HTML } from "./landing.ts";
 
 const CACHE_TTL_S = 300;
@@ -161,7 +161,15 @@ async function renderPreview(username: string, force: string, theme: "dark" | "l
         case "langs": {
             const repos = await fetchRepos(username);
             const langs = await fetchLanguages(username, repos);
-            return langsChart(langs, repos.length, theme === "light" ? PALETTES.light : PALETTES.dark);
+            let note: LangsNote | undefined;
+            if (Object.keys(langs).length === 0) {
+                // Unhappy path only: figure out *why* so the badge is honest.
+                // If the quota is genuinely gone, say so; otherwise attribute it
+                // to a transient GitHub failure rather than guessing "api limit".
+                const quota = await checkRateLimit();
+                note = quota && quota.remaining <= 1 ? "limit" : "unavailable";
+            }
+            return langsChart(langs, repos.length, theme === "light" ? PALETTES.light : PALETTES.dark, note);
         }
         default: { // pet
             const streak = currentStreak(calendar?.days ?? null);

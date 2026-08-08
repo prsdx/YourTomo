@@ -13,7 +13,9 @@ function esc(s: string): string {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-export function langsChart(totals: Record<string, number>, nRepos: number, pal: Record<string, string>): string {
+export type LangsNote = "limit" | "unavailable";
+
+export function langsChart(totals: Record<string, number>, nRepos: number, pal: Record<string, string>, note?: LangsNote): string {
     const top = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 8);
     const w = 460, rowH = 24, labelW = 96, barMax = 290;
     const h = 46 + rowH * Math.max(top.length, 1) + 24;
@@ -23,7 +25,13 @@ export function langsChart(totals: Record<string, number>, nRepos: number, pal: 
         `<text x="16" y="26" font-size="13" fill="${pal.text}">languages across ${nRepos} public repos</text>`,
     ];
     if (top.length === 0) {
-        parts.push(`<text x="16" y="60" font-size="12" fill="${pal.text}">no language data (api limit)</text>`);
+        // Honest, reason-specific fallback. The callers that know the cause pass
+        // a `note`; otherwise we keep the historical generic text so the
+        // Action's own output (which swallows all failures) is unchanged.
+        const msg = note === "limit" ? "no language data (api limit)"
+            : note === "unavailable" ? "no language data (temporarily unavailable)"
+            : "no language data (api limit)";
+        parts.push(`<text x="16" y="60" font-size="12" fill="${pal.text}">${msg}</text>`);
     } else {
         const grand = top.reduce((s, [, v]) => s + v, 0);
         top.forEach(([lang, bytes], i) => {
